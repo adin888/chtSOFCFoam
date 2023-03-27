@@ -1,0 +1,43 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+runApplication topoSet 
+
+# Restore initial fields
+restore0Dir
+
+runApplication splitMeshRegions -cellZones -overwrite
+
+#runApplication topoSet -dict system/porousTopoSetDict
+for region in $(foamListRegions fluid)
+do
+    runApplication -s $region topoSet -region $region
+done
+
+# Remove fluid fields from solid regions (important for post-processing)
+for region in $(foamListRegions solid)
+do
+    rm -f 0/$region/{nut,alphat,epsilon,k,U,p_rgh,H2,H2O,O2,N2}
+    rm -f processor*/0/$region/{nut,alphat,epsilon,k,U,p_rgh,H2,H2O,O2,N2}
+done
+
+rm -f 0/air/{H2,H2O}
+rm -f 0/fuel/{O2,N2}
+rm -f processor*/0/air/{H2,H2O}
+rm -f processor*/0/air/{O2,N2}
+
+#Remove the mesh for entire field that are not being used 
+rm -r constant/polyMesh
+
+for region in $(foamListRegions)
+do
+    runApplication -s $region changeDictionary -region $region
+done
+
+echo
+echo "End"
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,144 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2212                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // Interconnect_bottom
+    {
+        name    interconnect0CellSet;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0 0.0e-3 0.0e-3) (50.0e-3 4.0e-3 3.499e-3);
+    }
+    {
+        name    interconnect0CellSet;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        box     (0 0.0e-3 3.499e-3) (50.0e-3 0.999e-3 4.999e-3);
+    }
+    {
+        name    interconnect0CellSet;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        box     (0 2.999e-3 3.499e-3) (50.0e-3 4.0e-3 4.999e-3);
+    }
+    {
+        name    interconnect0;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     interconnect0CellSet;
+    }
+
+    // Air
+    {
+        name    airCellSet;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0 0.0e-3 4.999e-3) (50.0e-3 4.0e-3 5.291e-3);
+    }
+    {
+        name    airCellSet;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        box     (0 0.999e-3 3.499e-3) (50.0e-3 2.999e-3 4.999e-3);
+    }
+    {
+        name    air;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     airCellSet;
+    }
+
+    // Electrolyte
+    {
+        name    electrolyteCellSet;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0 0 5.291e-3) (50.0e-3 4.0e-3 5.299e-3);
+    }
+    {
+        name    electrolyte;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     electrolyteCellSet;
+    }
+    
+    // Fuel
+    {
+        name    fuelCellSet;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0 0.0e-3 5.299e-3) (50.0e-3 4.0e-3 6.299e-3);
+    }
+    {
+        name    fuelCellSet;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        box     (0 0.999e-3 6.299e-3) (50.0e-3 2.999e-3 7.799e-3);
+    }
+    {
+        name    fuel;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     fuelCellSet;
+    }
+    
+    // Interconnect_top
+    {
+        name    interconnect1CellSet;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0 0.0e-3 7.799e-3) (50.0e-3 4.0e-3 11.3e-3);
+    }
+    {
+        name    interconnect1CellSet;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        box     (0 0.0e-3 6.299e-3) (50.0e-3 0.999e-3 7.799e-3);
+    }
+    {
+        name    interconnect1CellSet;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        box     (0 2.999e-3 6.299e-3) (50.0e-3 4.0e-3 7.799e-3);
+    }
+    {
+        name    interconnect1;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     interconnect1CellSet;
+    }   
+    
+);
+
+
+// ************************************************************************* //
