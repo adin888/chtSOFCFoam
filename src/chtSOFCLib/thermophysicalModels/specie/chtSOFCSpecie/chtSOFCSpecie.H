@@ -39,10 +39,10 @@ SourceFiles
 #ifndef chtSOFCSpecie_H
 #define chtSOFCSpecie_H
 
-#include "specie.H"
 #include "word.H"
 #include "scalar.H"
 #include "dictionary.H"
+#include "IFstream.H"
 
 #include "thermodynamicConstants.H"
 using namespace Foam::constant::thermodynamic;
@@ -55,18 +55,13 @@ namespace Foam
 // Forward Declarations
 class chtSOFCSpecie;
 
-inline chtSOFCSpecie operator+(const chtSOFCSpecie&, const chtSOFCSpecie&);
-inline chtSOFCSpecie operator*(const scalar, const chtSOFCSpecie&);
-inline chtSOFCSpecie operator==(const chtSOFCSpecie&, const chtSOFCSpecie&);
-
 Ostream& operator<<(Ostream&, const chtSOFCSpecie&);
-
 
 /*---------------------------------------------------------------------------*\
                            Class chtSOFCSpecie Declaration
 \*---------------------------------------------------------------------------*/
 
-class chtSOFCSpecie : public specie
+class chtSOFCSpecie
 {
     // Private Data
 
@@ -79,7 +74,18 @@ class chtSOFCSpecie : public specie
         //- Molecular weight of chtSOFCSpecie [kg/kmol]
         scalar molWeight_;
 
+        //- Number of electrons this specie contributes to electrochemistry
+        scalar nElectrons_;
 
+        //- Is the specie consumed(-1), produced(+1), or inert(0)?
+        label rSign_;
+
+        //- Enthalpy of formation at 298.15 K
+        scalar hForm_;
+
+        //- Standard entropy at 298.15 K
+        scalar sForm_;
+        
 public:
 
     //- Declare type-name (with debug switch)
@@ -95,14 +101,26 @@ public:
     // Constructors
 
         //- Construct from components without name
-        inline chtSOFCSpecie(const scalar Y, const scalar molWeight);
+        inline chtSOFCSpecie
+        (
+            const scalar Y,
+            const scalar molWeight,
+            const scalar nElectrons,
+            const label  rSign,
+            const scalar hForm,
+            const scalar sForm        
+        );
 
         //- Construct from components with name
         inline chtSOFCSpecie
         (
             const word& name,
             const scalar Y,
-            const scalar molWeight
+            const scalar molWeight,
+            const scalar nElectrons,
+            const label  rSign,
+            const scalar hForm,
+            const scalar sForm
         );
 
         //- Construct as named copy
@@ -127,28 +145,33 @@ public:
 
             //- Gas constant [J/(kg K)]
             inline scalar R() const;
+            
+            //- Number of electrons this specie contributes to electrochemistry
+            inline scalar nE() const;
+
+            //- Is the specie consumed(<0), produced(>0), or inert(0)?
+            inline label rSign() const;
+
+            //- Enthalpy of formation at 298.15 K
+            inline scalar hForm() const;
+
+            //- Standard entropy at 298.15 K
+            inline scalar sForm() const;
 
 
         // IO
+        
+            //read and store objects
+            static PtrList<chtSOFCSpecie> readAndStoreSOFCSpecies(const fileName& chtSOFCSpeciePropertiesFile);
+
 
             //- Write to Ostream
             void write(Ostream& os) const;
-
-
+            
     // Member Operators
 
         //- Copy assignment, preserve original name
         inline void operator=(const chtSOFCSpecie&);
-
-        inline void operator+=(const chtSOFCSpecie&);
-        inline void operator*=(const scalar);
-
-
-    // Friend Operators
-
-        inline friend chtSOFCSpecie operator+(const chtSOFCSpecie&, const chtSOFCSpecie&);
-        inline friend chtSOFCSpecie operator*(const scalar, const chtSOFCSpecie&);
-        inline friend chtSOFCSpecie operator==(const chtSOFCSpecie&, const chtSOFCSpecie&);
 
 
     // IOstream Operators

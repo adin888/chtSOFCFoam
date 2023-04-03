@@ -1,3 +1,8 @@
+    //read and store the chtSOFCSpecieProperties
+    word fluidRegionName = fluidRegions[i].name();
+    fileName chtSOFCSpeciePropertiesFile("constant"/fluidRegionName/"chtSOFCSpecieProperties");
+    PtrList<chtSOFCSpecie> chtSOFCSpecies = chtSOFCSpecie::readAndStoreSOFCSpecies(chtSOFCSpeciePropertiesFile);
+    
     CombustionModel<rhoReactionThermo>& reaction = reactionFluid[i];
 
     rhoReactionThermo& thermo = reaction.thermo();

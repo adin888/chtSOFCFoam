@@ -1,0 +1,7 @@
+# ignore files
+*.log
+
+# ignore folders
+/linux64GccDPInt32Opt/
+
+

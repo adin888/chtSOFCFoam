@@ -192,9 +192,8 @@ O2
         
         air_to_electrolyte
         {
-            type            outletInlet;
-            value           uniform 0;
-            outletValue	    $internalField;
+            type            fixedGradient;
+            gradient        uniform 0;
         }
     }
 }
@@ -216,6 +215,11 @@ N2
             value           $internalField;
         }
         
+        air_to_electrolyte
+        {
+            type            fixedGradient;
+            gradient        uniform 0;
+        }
     }
 }
 // ************************************************************************* //

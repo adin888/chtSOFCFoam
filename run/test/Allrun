@@ -12,9 +12,9 @@ runApplication ./Allrun.pre
 runApplication decomposePar -allRegions
 
 # Run
-runParallel $(getApplication)
-
+#runParallel $(getApplication)
+$(getApplication) > log &
 # Reconstruct
-runApplication reconstructPar -allRegions
+#runApplication reconstructPar -allRegions
 
 #------------------------------------------------------------------------------

@@ -40,11 +40,39 @@ namespace Foam
 
 Foam::chtSOFCSpecie::chtSOFCSpecie(const dictionary& dict)
 :
-    specie(dict.dictName(), dict.subDict("chtSOFCSpecie").getOrDefault<scalar>("massFraction", 1), dict.subDict("chtSOFCSpecie").get<scalar>("molWeight"))
+    name_(dict.dictName()),
+    Y_(dict.subDict("specie").getOrDefault<scalar>("massFraction", 1)),
+    molWeight_(dict.subDict("specie").get<scalar>("molWeight")),
+    nElectrons_(dict.subDict("specie").get<scalar>("nElectrons")),
+    rSign_(dict.subDict("specie").get<label>("rSign")),
+    hForm_(dict.subDict("specie").get<scalar>("hForm")),
+    sForm_(dict.subDict("specie").get<scalar>("sForm"))
 {}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+Foam::PtrList<Foam::chtSOFCSpecie> 
+Foam::chtSOFCSpecie::readAndStoreSOFCSpecies
+(const fileName& chtSOFCSpeciePropertiesFile)
+{
+    IFstream fileStream(chtSOFCSpeciePropertiesFile);
+    dictionary chtSOFCSpeciePropertiesDict(fileStream);
+
+    wordList speciesNames = chtSOFCSpeciePropertiesDict.toc();
+    PtrList<chtSOFCSpecie> chtSOFCSpecies(speciesNames.size());
+
+    //for (label i = 0; i < speciesNames.size(); ++i)
+    forAll(chtSOFCSpecies, i)
+    {
+        const word& speciesName = speciesNames[i];
+        const dictionary& specieDict = chtSOFCSpeciePropertiesDict.subDict(speciesName);
+        // Allocate memory for each element in the PtrList
+        chtSOFCSpecies.set(i, new chtSOFCSpecie(specieDict));
+    }
+
+    return chtSOFCSpecies;
+}
 
 void Foam::chtSOFCSpecie::write(Ostream& os) const
 {
@@ -53,6 +81,10 @@ void Foam::chtSOFCSpecie::write(Ostream& os) const
         os.beginBlock("chtSOFCSpecie");
         os.writeEntryIfDifferent<scalar>("massFraction", 1, Y_);
         os.writeEntry("molWeight", molWeight_);
+        os.writeEntry("nElectrons", nElectrons_);
+        os.writeEntry("rSign", rSign_);
+        os.writeEntry("hForm", hForm_);
+        os.writeEntry("sForm", sForm_);      
         os.endBlock();
     }
 }

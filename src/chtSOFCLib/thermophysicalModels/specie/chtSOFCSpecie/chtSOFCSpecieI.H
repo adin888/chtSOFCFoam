@@ -34,20 +34,39 @@ inline Foam::chtSOFCSpecie::chtSOFCSpecie
 (
     const word& name,
     const scalar Y,
-    const scalar molWeight
+    const scalar molWeight,
+    const scalar nElectrons,
+    const label  rSign,
+    const scalar hForm,
+    const scalar sForm
 )
 :
-    specie(name, Y, molWeight)
+    name_(name),
+    Y_(Y),
+    molWeight_(molWeight),
+    nElectrons_(nElectrons),
+    rSign_(rSign),
+    hForm_(hForm),
+    sForm_(sForm)
 {}
 
 
 inline Foam::chtSOFCSpecie::chtSOFCSpecie
 (
     const scalar Y,
-    const scalar molWeight
+    const scalar molWeight,
+    const scalar nElectrons,
+    const label  rSign,
+    const scalar hForm,
+    const scalar sForm   
 )
 :
-    specie(Y, molWeight)
+    Y_(Y),
+    molWeight_(molWeight),
+    nElectrons_(nElectrons),
+    rSign_(rSign),
+    hForm_(hForm),
+    sForm_(sForm)    
 {}
 
 
@@ -55,7 +74,13 @@ inline Foam::chtSOFCSpecie::chtSOFCSpecie
 
 inline Foam::chtSOFCSpecie::chtSOFCSpecie(const word& name, const chtSOFCSpecie& st)
 :
-    specie(name, st.Y(), st.W())
+    name_(name),
+    Y_(st.Y_),
+    molWeight_(st.molWeight_),
+    nElectrons_(st.nElectrons_),
+    rSign_(st.rSign_),
+    hForm_(st.hForm_),
+    sForm_(st.sForm_)
 {}
 
 
@@ -84,6 +109,25 @@ inline Foam::scalar Foam::chtSOFCSpecie::R() const
     return RR/molWeight_;
 }
 
+inline Foam::scalar Foam::chtSOFCSpecie::nE() const
+{
+    return nElectrons_;
+}
+
+inline Foam::label  Foam::chtSOFCSpecie::rSign() const
+{
+    return rSign_;
+}
+
+inline Foam::scalar Foam::chtSOFCSpecie::hForm() const
+{
+    return hForm_;
+}
+
+inline Foam::scalar Foam::chtSOFCSpecie::sForm() const
+{
+    return sForm_;
+}
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
@@ -92,83 +136,9 @@ inline void Foam::chtSOFCSpecie::operator=(const chtSOFCSpecie& st)
     // Preserve original name
     Y_ = st.Y_;
     molWeight_ = st.molWeight_;
+    nElectrons_ = st.nElectrons_;
+    rSign_ = st.rSign_;
+    hForm_ = st.hForm_;
+    sForm_ = st.sForm_;
 }
 
-
-inline void Foam::chtSOFCSpecie::operator+=(const chtSOFCSpecie& st)
-{
-    const scalar sumY = Y_ + st.Y_;
-    if (mag(sumY) > SMALL)
-    {
-        molWeight_ = sumY/(Y_/molWeight_ + st.Y_/st.molWeight_);
-    }
-
-    Y_ = sumY;
-}
-
-
-inline void Foam::chtSOFCSpecie::operator*=(const scalar s)
-{
-    Y_ *= s;
-}
-
-
-// * * * * * * * * * * * * * * * Friend Operators  * * * * * * * * * * * * * //
-
-inline Foam::chtSOFCSpecie Foam::operator+(const chtSOFCSpecie& st1, const chtSOFCSpecie& st2)
-{
-    const scalar sumY = max(st1.Y_ + st2.Y_, SMALL);
-
-    if (mag(sumY) > SMALL)
-    {
-        return chtSOFCSpecie
-        (
-            sumY,
-            sumY/(st1.Y_/st1.molWeight_ + st2.Y_/st2.molWeight_)
-        );
-    }
-    else
-    {
-        return st1;
-    }
-}
-
-
-inline Foam::chtSOFCSpecie Foam::operator*(const scalar s, const chtSOFCSpecie& st)
-{
-    return chtSOFCSpecie
-    (
-        s*st.Y_,
-        st.molWeight_
-    );
-}
-
-
-inline Foam::chtSOFCSpecie Foam::operator==(const chtSOFCSpecie& st1, const chtSOFCSpecie& st2)
-{
-    scalar diffY = st2.Y_ - st1.Y_;
-    if (mag(diffY) < SMALL)
-    {
-        diffY = SMALL;
-    }
-
-    const scalar diffRW = st2.Y_/st2.molWeight_ - st1.Y_/st1.molWeight_;
-
-    #ifdef __clang__
-    // Using intermediate volatile bool to prevent compiler optimising out the
-    // if block (above) - CLANG 3.7.1
-    volatile const bool valid = (mag(diffRW) > SMALL);
-    const scalar molWeight = valid ? diffY/diffRW : GREAT;
-    #else
-    scalar molWeight = GREAT;
-    if (mag(diffRW) > SMALL)
-    {
-         molWeight = diffY/diffRW;
-    }
-    #endif
-
-    return chtSOFCSpecie(diffY, molWeight);
-}
-
-
-// ************************************************************************* //

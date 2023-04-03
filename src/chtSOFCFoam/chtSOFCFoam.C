@@ -54,6 +54,9 @@ Description
 #include "loopControl.H"
 #include "pressureControl.H"
 
+#include "electrochemistryConstants.H"
+#include "chtSOFCSpecie.H"
+#include "PatchToPatchInterpolation.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -83,6 +86,7 @@ int main(int argc, char *argv[])
     #include "setInitialMultiRegionDeltaT.H"
 
     #include "createCoupledRegions.H"
+    #include "readPatchInfo.H"
 
     while (runTime.run())
     {

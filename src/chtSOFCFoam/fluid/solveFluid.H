@@ -16,6 +16,9 @@ else
 
     #include "UEqn.H"
     #include "YEqn.H"
+    
+    #include "solveElectrochemistry.H"
+    
     #include "EEqn.H"
 
     if (!coupled)
