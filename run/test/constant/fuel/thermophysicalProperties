@@ -42,6 +42,7 @@ H2
         rSign		-1;
         hForm		0;
         sForm		130.680;
+        stoiCoeff       1;
     }
     thermodynamics
     {
@@ -67,6 +68,7 @@ H2O
         rSign		1;
         hForm		-241.8349e3;
         sForm		188.835;
+        stoiCoeff       1;
     }
     thermodynamics
     {

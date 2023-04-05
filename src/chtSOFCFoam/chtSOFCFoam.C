@@ -57,7 +57,8 @@ Description
 #include "electrochemistryConstants.H"
 #include "chtSOFCSpecie.H"
 #include "PatchToPatchInterpolation.H"
-
+#include "thermoPhysicsTypes.H"
+#include "multiComponentMixture.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -87,6 +88,7 @@ int main(int argc, char *argv[])
 
     #include "createCoupledRegions.H"
     #include "readPatchInfo.H"
+   
 
     while (runTime.run())
     {
@@ -114,7 +116,7 @@ int main(int argc, char *argv[])
         for (int oCorr=0; oCorr<nOuterCorr; ++oCorr)
         {
             const bool finalIter = (oCorr == nOuterCorr-1);
-
+	    #include "initializeElectroChem.H"
             forAll(fluidRegions, i)
             {
                 fvMesh& mesh = fluidRegions[i];

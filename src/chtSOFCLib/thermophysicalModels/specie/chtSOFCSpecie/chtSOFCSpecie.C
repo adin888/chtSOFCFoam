@@ -46,7 +46,8 @@ Foam::chtSOFCSpecie::chtSOFCSpecie(const dictionary& dict)
     nElectrons_(dict.subDict("specie").get<scalar>("nElectrons")),
     rSign_(dict.subDict("specie").get<label>("rSign")),
     hForm_(dict.subDict("specie").get<scalar>("hForm")),
-    sForm_(dict.subDict("specie").get<scalar>("sForm"))
+    sForm_(dict.subDict("specie").get<scalar>("sForm")),
+    stoiCoeff_(dict.subDict("specie").get<scalar>("stoiCoeff"))
 {}
 
 
@@ -59,16 +60,29 @@ Foam::chtSOFCSpecie::readAndStoreSOFCSpecies
     IFstream fileStream(chtSOFCSpeciePropertiesFile);
     dictionary chtSOFCSpeciePropertiesDict(fileStream);
 
-    wordList speciesNames = chtSOFCSpeciePropertiesDict.toc();
+    wordList speciesNames = chtSOFCSpeciePropertiesDict.lookup("species");
     PtrList<chtSOFCSpecie> chtSOFCSpecies(speciesNames.size());
 
     //for (label i = 0; i < speciesNames.size(); ++i)
     forAll(chtSOFCSpecies, i)
     {
         const word& speciesName = speciesNames[i];
-        const dictionary& specieDict = chtSOFCSpeciePropertiesDict.subDict(speciesName);
-        // Allocate memory for each element in the PtrList
-        chtSOFCSpecies.set(i, new chtSOFCSpecie(specieDict));
+        if (chtSOFCSpeciePropertiesDict.found(speciesName))
+        {
+	    const dictionary& specieDict = chtSOFCSpeciePropertiesDict.subDict(speciesName);
+	    // Allocate memory for each element in the PtrList
+	    chtSOFCSpecies.set
+	    (
+	        i, 
+	        new chtSOFCSpecie(specieDict)
+	    );
+        }
+        else
+        {
+            WarningInFunction
+                << "Specie " << speciesName << " not found in the dictionary."
+                << " Please check the input file." << endl;
+        }
     }
 
     return chtSOFCSpecies;
@@ -84,7 +98,8 @@ void Foam::chtSOFCSpecie::write(Ostream& os) const
         os.writeEntry("nElectrons", nElectrons_);
         os.writeEntry("rSign", rSign_);
         os.writeEntry("hForm", hForm_);
-        os.writeEntry("sForm", sForm_);      
+        os.writeEntry("sForm", sForm_);   
+        os.writeEntry("stoiCoeff", stoiCoeff_);  
         os.endBlock();
     }
 }

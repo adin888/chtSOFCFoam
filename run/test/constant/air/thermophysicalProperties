@@ -42,6 +42,7 @@ N2
         rSign		0;
         hForm		0;
         sForm		191.609;
+        stoiCoeff       0;
     }
     thermodynamics
     {
@@ -68,6 +69,7 @@ O2
         rSign		-1;
         hForm		205.152;
         sForm		191.609;
+        stoiCoeff       0.5;
     }
     thermodynamics
     {

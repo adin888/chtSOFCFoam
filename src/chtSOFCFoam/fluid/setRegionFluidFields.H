@@ -1,8 +1,3 @@
-    //read and store the chtSOFCSpecieProperties
-    word fluidRegionName = fluidRegions[i].name();
-    fileName chtSOFCSpeciePropertiesFile("constant"/fluidRegionName/"chtSOFCSpecieProperties");
-    PtrList<chtSOFCSpecie> chtSOFCSpecies = chtSOFCSpecie::readAndStoreSOFCSpecies(chtSOFCSpeciePropertiesFile);
-    
     CombustionModel<rhoReactionThermo>& reaction = reactionFluid[i];
 
     rhoReactionThermo& thermo = reaction.thermo();
@@ -10,6 +5,40 @@
 
     basicMultiComponentMixture& composition = thermo.composition();
     PtrList<volScalarField>& Y = composition.Y();
+    
+    
+    
+    
+    /*
+    - read and store the chtSOFCSpecieProperties  
+    */
+    word fluidRegionName = fluidRegions[i].name();
+    fileName chtSOFCSpeciePropertiesFile("constant"/fluidRegionName/"thermophysicalProperties");
+    PtrList<chtSOFCSpecie> chtSOFCSpecies = chtSOFCSpecie::readAndStoreSOFCSpecies(chtSOFCSpeciePropertiesFile);
+    
+    /*
+    - get the thermophysical Data to calculate cp etc.
+    - Type gasHThermoPhysics = sutherlandTransport<species::thermo<janafThermo<perfectGas<specie>>, sensibleEnthalpy>> 
+    - if differnet settings are used, it needs to be changed according to source fiel 'thermoPhysicsTypes.H' 
+    */
+    PtrList<gasHThermoPhysics> specieThermoData(Y.size());
+    forAll(specieThermoData, i)
+    {
+        specieThermoData.set
+        (
+            i,
+            new gasHThermoPhysics
+            (
+                dynamic_cast<const multiComponentMixture<gasHThermoPhysics>&>
+                    (thermo).speciesData()[i]
+            )
+        );
+    }
+    
+    
+    
+    
+    
 
     label inertIndex = -1;
     if (Y.size())

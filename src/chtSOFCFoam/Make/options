@@ -3,6 +3,7 @@ EXE_INC = \
     -I./solid \
     -I./porousFluid \
     -I./porousSolid \
+    -I./electrochemistry \
     -I./include \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
@@ -21,6 +22,7 @@ EXE_INC = \
     -I$(LIB_SRC)/regionModels/regionModel/lnInclude \
     -I$(LIB_SRC)/regionFaModels/lnInclude \
     -I../chtSOFCLib/thermophysicalModels/specie/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/thermophysicalProperties/lnInclude \
 
 
 EXE_LIBS = \
@@ -45,3 +47,4 @@ EXE_LIBS = \
     -lregionFaModels \
     -lfiniteArea \
     -lchtSOFCFoam \
+    -lthermophysicalProperties \

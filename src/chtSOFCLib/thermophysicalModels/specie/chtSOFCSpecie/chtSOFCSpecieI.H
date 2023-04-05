@@ -38,7 +38,8 @@ inline Foam::chtSOFCSpecie::chtSOFCSpecie
     const scalar nElectrons,
     const label  rSign,
     const scalar hForm,
-    const scalar sForm
+    const scalar sForm,
+    const scalar stoiCoeff
 )
 :
     name_(name),
@@ -47,7 +48,8 @@ inline Foam::chtSOFCSpecie::chtSOFCSpecie
     nElectrons_(nElectrons),
     rSign_(rSign),
     hForm_(hForm),
-    sForm_(sForm)
+    sForm_(sForm),
+    stoiCoeff_(stoiCoeff)
 {}
 
 
@@ -58,7 +60,8 @@ inline Foam::chtSOFCSpecie::chtSOFCSpecie
     const scalar nElectrons,
     const label  rSign,
     const scalar hForm,
-    const scalar sForm   
+    const scalar sForm,
+    const scalar stoiCoeff   
 )
 :
     Y_(Y),
@@ -66,7 +69,8 @@ inline Foam::chtSOFCSpecie::chtSOFCSpecie
     nElectrons_(nElectrons),
     rSign_(rSign),
     hForm_(hForm),
-    sForm_(sForm)    
+    sForm_(sForm),
+    stoiCoeff_(stoiCoeff)    
 {}
 
 
@@ -80,7 +84,8 @@ inline Foam::chtSOFCSpecie::chtSOFCSpecie(const word& name, const chtSOFCSpecie&
     nElectrons_(st.nElectrons_),
     rSign_(st.rSign_),
     hForm_(st.hForm_),
-    sForm_(st.sForm_)
+    sForm_(st.sForm_),
+    stoiCoeff_(st.stoiCoeff_)
 {}
 
 
@@ -129,6 +134,11 @@ inline Foam::scalar Foam::chtSOFCSpecie::sForm() const
     return sForm_;
 }
 
+inline Foam::scalar Foam::chtSOFCSpecie::stoiCoeff() const
+{
+    return stoiCoeff_;
+}
+
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //
 
 inline void Foam::chtSOFCSpecie::operator=(const chtSOFCSpecie& st)
@@ -140,5 +150,6 @@ inline void Foam::chtSOFCSpecie::operator=(const chtSOFCSpecie& st)
     rSign_ = st.rSign_;
     hForm_ = st.hForm_;
     sForm_ = st.sForm_;
+    stoiCoeff_ = st.stoiCoeff_;
 }
 

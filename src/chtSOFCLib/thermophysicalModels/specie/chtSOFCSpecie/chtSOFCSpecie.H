@@ -86,6 +86,8 @@ class chtSOFCSpecie
         //- Standard entropy at 298.15 K
         scalar sForm_;
         
+        scalar stoiCoeff_;
+        
 public:
 
     //- Declare type-name (with debug switch)
@@ -108,7 +110,8 @@ public:
             const scalar nElectrons,
             const label  rSign,
             const scalar hForm,
-            const scalar sForm        
+            const scalar sForm,
+            const scalar stoiCoeff        
         );
 
         //- Construct from components with name
@@ -120,7 +123,8 @@ public:
             const scalar nElectrons,
             const label  rSign,
             const scalar hForm,
-            const scalar sForm
+            const scalar sForm,
+            const scalar stoiCoeff
         );
 
         //- Construct as named copy
@@ -157,14 +161,15 @@ public:
 
             //- Standard entropy at 298.15 K
             inline scalar sForm() const;
+            
+            inline scalar stoiCoeff() const;
 
 
         // IO
         
             //read and store objects
             static PtrList<chtSOFCSpecie> readAndStoreSOFCSpecies(const fileName& chtSOFCSpeciePropertiesFile);
-
-
+            
             //- Write to Ostream
             void write(Ostream& os) const;
             
