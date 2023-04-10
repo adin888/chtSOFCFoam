@@ -1,0 +1,11 @@
+activationOverpotentialModels/activationOverpotentialModel/activationOverpotentialModel.C
+activationOverpotentialModels/butlerVolmer/butlerVolmer.C
+activationOverpotentialModels/tafel/tafel.C
+activationOverpotentialModels/activationOverpotentialModel/newActivationOverpotentialModel.C
+
+smearPatchToMesh/regionInfo.C
+smearPatchToMesh/smearPatchToMesh.C
+
+thermophysicalModels/specie/chtSOFCSpecie/chtSOFCSpecie.C
+
+LIB = $(FOAM_USER_LIBBIN)/libchtSOFCFoam

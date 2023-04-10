@@ -11,7 +11,7 @@ restore0Dir
 
 runApplication splitMeshRegions -cellZones -overwrite
 
-for region in $(foamListRegions fluid)
+for region in $(foamListRegions)
 do
     runApplication -s $region topoSet -region $region
 done

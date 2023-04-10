@@ -3,9 +3,11 @@
     label anodePatchId;
     label anodePatchSize; 
     label electrolyteAnodePatchId;
+    label electrolyteCathodePatchId;
     const polyPatch* cathodePatch = nullptr;
     const polyPatch* anodePatch = nullptr;
     const polyPatch* electrolyteAnodePatch = nullptr;
+    const fvMesh* electrolyteMesh = nullptr;
 
     forAll(fluidRegions, i)
     {
@@ -31,7 +33,9 @@
     	fvMesh& mesh = solidRegions[i];
     	if(solidRegions[i].name() == "electrolyte")
     	{
+	    electrolyteMesh = &mesh;
     	    electrolyteAnodePatchId = mesh.boundaryMesh().findPatchID("electrolyte_to_fuel");
+    	    electrolyteCathodePatchId = mesh.boundaryMesh().findPatchID("electrolyte_to_air");
     	    electrolyteAnodePatch = &mesh.boundaryMesh()[electrolyteAnodePatchId];
     	}
     }

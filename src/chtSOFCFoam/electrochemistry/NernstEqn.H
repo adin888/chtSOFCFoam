@@ -51,7 +51,7 @@
     	
     	forAll(anodeT, celli)
     	{
-            scalar currentT = anodeT[celli];
+            const scalar& currentT = anodeT[celli];
             cpInt[celli] = 
             (
             	specieThermoData[s].Cp(0, currentT)
@@ -104,12 +104,12 @@
 
         // Nernst
         // ------
-        Nernst =
+        NernstAnode =
             (-deltaGrxn - R * anodeT * Foam::log(Qrxn))
             / (zRxn * F);
 
-        Info<< "min,mean,max Nernst = " << gMin(Nernst) << "  "
-        << gAverage(Nernst) << "  " << gMax(Nernst) << endl;
+        Info<< "min,mean,max NernstAnode = " << gMin(NernstAnode) << "  "
+        << gAverage(NernstAnode) << "  " << gMax(NernstAnode) << endl;
     }
 
 

@@ -38,11 +38,11 @@
 
     Info<< "creating current density field\n" << endl;
 
-    volScalarField idensity
+    volScalarField jDensity
     (
         IOobject
         (
-            "i",
+            "j",
             runTime.timeName(),
             *meshElectrolyte,
             IOobject::READ_IF_PRESENT,
@@ -51,7 +51,7 @@
         *meshElectrolyte,
         dimensionedScalar
         (
-            "i",
+            "j",
             dimensionSet(0, -2, 0, 0, 0, 1, 0),
             ibar0.value()
         ),
@@ -116,11 +116,11 @@
     );
 
     Info<< "creating Nernst potential field\n" << endl;
-    volScalarField NernstPot
+    volScalarField Nernst
     (
         IOobject
         (
-            "NernstPot",
+            "Nernst",
             runTime.timeName(),
             *meshElectrolyte,
             IOobject::NO_READ,

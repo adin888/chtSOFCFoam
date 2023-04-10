@@ -59,6 +59,9 @@ Description
 #include "PatchToPatchInterpolation.H"
 #include "thermoPhysicsTypes.H"
 #include "multiComponentMixture.H"
+#include "activationOverpotentialModel.H"
+#include "smearPatchToMesh.H"
+//#include "GeometricField.H"
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -88,6 +91,7 @@ int main(int argc, char *argv[])
 
     #include "createCoupledRegions.H"
     #include "readPatchInfo.H"
+    #include "electrolyteThickness.H"
    
 
     while (runTime.run())

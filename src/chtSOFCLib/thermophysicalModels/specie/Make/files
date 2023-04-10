@@ -1,3 +1,0 @@
-chtSOFCSpecie/chtSOFCSpecie.C
-
-LIB = $(FOAM_USER_LIBBIN)/libchtSOFCFoam

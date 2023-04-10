@@ -14,7 +14,8 @@
     */
     word fluidRegionName = fluidRegions[i].name();
     fileName chtSOFCSpeciePropertiesFile("constant"/fluidRegionName/"thermophysicalProperties");
-    PtrList<chtSOFCSpecie> chtSOFCSpecies = chtSOFCSpecie::readAndStoreSOFCSpecies(chtSOFCSpeciePropertiesFile);
+    dictionary chtSOFCSpeciePropertiesDict = chtSOFCSpecie::chtSOFCSpecieDict(chtSOFCSpeciePropertiesFile);
+    PtrList<chtSOFCSpecie> chtSOFCSpecies = chtSOFCSpecie::readAndStoreSOFCSpecies(chtSOFCSpeciePropertiesDict);
     
     /*
     - get the thermophysical Data to calculate cp etc.
@@ -35,6 +36,15 @@
         );
     }
     
+    speciesTable chtSOFCSpeciesNames
+    (
+    	chtSOFCSpeciePropertiesDict.lookup("species")
+    );
+    
+    autoPtr<activationOverpotentialModel> activationOverpotential
+    (
+        activationOverpotentialModel::New(chtSOFCSpeciesNames, chtSOFCSpeciePropertiesDict)
+    );
     
     
     

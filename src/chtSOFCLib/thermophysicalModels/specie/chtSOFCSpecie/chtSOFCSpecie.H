@@ -168,7 +168,8 @@ public:
         // IO
         
             //read and store objects
-            static PtrList<chtSOFCSpecie> readAndStoreSOFCSpecies(const fileName& chtSOFCSpeciePropertiesFile);
+            static dictionary chtSOFCSpecieDict(const fileName& chtSOFCSpeciePropertiesFile);
+            static PtrList<chtSOFCSpecie> readAndStoreSOFCSpecies(const dictionary& chtSOFCSpeciePropertiesDict);
             
             //- Write to Ostream
             void write(Ostream& os) const;

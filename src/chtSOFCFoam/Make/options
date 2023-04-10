@@ -21,7 +21,7 @@ EXE_INC = \
     -I$(LIB_SRC)/thermophysicalModels/radiation/lnInclude \
     -I$(LIB_SRC)/regionModels/regionModel/lnInclude \
     -I$(LIB_SRC)/regionFaModels/lnInclude \
-    -I../chtSOFCLib/thermophysicalModels/specie/lnInclude \
+    -I../chtSOFCLib/lnInclude \
     -I$(LIB_SRC)/thermophysicalModels/thermophysicalProperties/lnInclude \
 
 

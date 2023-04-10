@@ -10,13 +10,13 @@
     const scalar F = eletrochemistryConstant::F.value();
     const scalar FF = eletrochemistryConstant::FF.value();
     const scalar Tr = 298.15;  //reference Temperature [K] for thermodynamics
-    
-    scalarField jDensity(anodePatchSize, 1);    
-    scalarField jDensityOld(anodePatchSize);    
+      
+    scalarField jDensityOld(anodePatchSize);   
+    scalarField jDensityNew(anodePatchSize); 
+    scalarField jDensityAnode(anodePatchSize);
     scalarField mFluxOld(anodePatchSize);    
-    scalarField jDensityNew(anodePatchSize);
     scalarField moleFraction(anodePatchSize, 0);
-    scalarField Nernst(anodePatchSize, 0);
+    scalarField NernstAnode(anodePatchSize, 0);
     
     const scalarField& anodeT=thermo.T().boundaryFieldRef()[anodePatchId];
     const scalarField& cathodeT=thermo.T().boundaryFieldRef()[cathodePatchId];
@@ -26,7 +26,7 @@
     /* calculate anode mole fractions except for inert specie*/
     #include "calculatexSpecie.H"
     
-    /* calculate Nernst potential */
+    /* calculate Nernst potential in Anode*/
     #include "NernstEqn.H"
     
     /* calculate area specific resistance resist based on anodeT */
@@ -71,7 +71,7 @@
 	{
 	    jDensityNew = 
 	    (
-	         ( Nernst
+	         ( NernstAnode
 	         - voltage.boundaryField()[electrolyteAnodePatchId] 
 	         - etaA.boundaryField()[electrolyteAnodePatchId] 
 	         - etaC.boundaryField()[electrolyteAnodePatchId])
@@ -82,13 +82,13 @@
 	{
 	     jDensityNew = 
 	     (
-	         ( Nernst 
+	         ( NernstAnode 
 	         - voltage.boundaryField()[electrolyteAnodePatchId])
 	         / resist
 	     );
 	}
 	
-    jDensity = 
+    jDensityAnode = 
     (
     	relaxj 
     	* jDensityNew 
@@ -97,11 +97,13 @@
     );
 	
     // ensure jDensity > 0
-    jDensity = Foam::max(jDensity, SMALL);
-            Info << "min,mean,max(jDensity: "
-                  << Foam::gMin(jDensity) <<" , "
-                  << Foam::gAverage(jDensity) <<" , "
-                 << Foam::gMax(jDensity) << endl;        
+    //dimensionedScalar smallDim("smallDim", jDensity.dimensions(), SMALL);
+    
+    jDensityAnode = Foam::max(jDensityAnode, SMALL);
+            Info << "min,mean,max(jDensityAnode: "
+                  << Foam::gMin(jDensityAnode) <<" , "
+                  << Foam::gAverage(jDensityAnode) <<" , "
+                 << Foam::gMax(jDensityAnode) << endl;        
             Info << "min,mean,max(jDensityNew): "
                   << Foam::gMin(jDensityNew) <<" , "
                   << Foam::gAverage(jDensityNew) <<" , "
@@ -110,7 +112,7 @@
                   << Foam::gMin(jDensityOld) <<" , "
                   << Foam::gAverage(jDensityOld) <<" , "
                  << Foam::gMax(jDensityOld) << endl;        
-/*
+
     // Activation overpotential - added SBB 04-09-2013
     // scalarField etaAnode is computed from an inverse Butler-Volmer eqn.
   	
@@ -120,24 +122,19 @@
     }
 
     // Smear boundary current and Nernst potential over electrolyte volume
-    #include "idensity.H"
-    
+    #include "smearJDensity.H"
+  
     // Calculate mean current density
     #include "solveCurrent.H"
 
     // mean current density
     Info << "min,mean,max(current): "
-         << gMin(idensity.primitiveFieldRef()) << " , "
-         << gAverage(idensity.primitiveFieldRef()) << " , "
-         << gMax(idensity.primitiveFieldRef()) << endl;
-
-
+         << gMin(jDensity.primitiveFieldRef()) << " , "
+         << gAverage(jDensity.primitiveFieldRef()) << " , "
+         << gMax(jDensity.primitiveFieldRef()) << endl;
 
     // Calculate electrochemical heating
-    #include "electrochemicalHeating.H"
-   */ 
-    
-    
+    #include "electrochemicalHeating.H" 
     
     
     /* Calculate boudary conditions for mass fractions and velocity */
@@ -160,7 +157,7 @@
   	    	mFlux[s] = 
   	    	(
   	    	    chtSOFCSpecies[s].rSign() * chtSOFCSpecies[s].W()
-  	    	    * jDensity / (FF * chtSOFCSpecies[s].nE())
+  	    	    * jDensityAnode / (FF * chtSOFCSpecies[s].nE())
   	    	);
   	    	mFluxSum += mFlux[s];
   	    	isFlux[s] = "true";

@@ -52,14 +52,20 @@ Foam::chtSOFCSpecie::chtSOFCSpecie(const dictionary& dict)
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
-Foam::PtrList<Foam::chtSOFCSpecie> 
-Foam::chtSOFCSpecie::readAndStoreSOFCSpecies
+Foam::dictionary 
+Foam::chtSOFCSpecie::chtSOFCSpecieDict
 (const fileName& chtSOFCSpeciePropertiesFile)
 {
     IFstream fileStream(chtSOFCSpeciePropertiesFile);
     dictionary chtSOFCSpeciePropertiesDict(fileStream);
+    
+    return chtSOFCSpeciePropertiesDict;
+}
 
+Foam::PtrList<Foam::chtSOFCSpecie> 
+Foam::chtSOFCSpecie::readAndStoreSOFCSpecies
+(const dictionary& chtSOFCSpeciePropertiesDict)
+{
     wordList speciesNames = chtSOFCSpeciePropertiesDict.lookup("species");
     PtrList<chtSOFCSpecie> chtSOFCSpecies(speciesNames.size());
 
