@@ -32,7 +32,12 @@
             IOobject::AUTO_WRITE
         ),
         *meshElectrolyte,
-        0,
+        dimensionedScalar
+        (
+            "electrochemicalHeating",
+            dimensionSet(1, -1, -3, 0, 0, 0, 0),
+            0
+        ),
         zeroGradientFvPatchScalarField::typeName
     );
 
