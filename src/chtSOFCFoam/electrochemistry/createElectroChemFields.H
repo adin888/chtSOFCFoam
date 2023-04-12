@@ -58,7 +58,7 @@
         (
             "j",
             dimensionSet(0, -2, 0, 0, 0, 1, 0),
-            ibar0.value()
+            jbar0.value()
         ),
         zeroGradientFvPatchScalarField::typeName
     );

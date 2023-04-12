@@ -147,8 +147,10 @@ p_rgh
         
         "air_to_.*"
         {
-            type	    fixedFluxPressure;
-            value	    uniform 0;
+            type	    fixedGradient;
+            gradient 	    uniform 0;
+            //type	    fixedFluxPressure;
+            //value	    uniform 0;
         }
     }
 }

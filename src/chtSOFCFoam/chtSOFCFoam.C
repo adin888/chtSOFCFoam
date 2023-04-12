@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         for (int oCorr=0; oCorr<nOuterCorr; ++oCorr)
         {
             const bool finalIter = (oCorr == nOuterCorr-1);
-	    #include "initializeElectroChem.H"
+	        #include "initializeElectroChem.H"
             forAll(fluidRegions, i)
             {
                 fvMesh& mesh = fluidRegions[i];

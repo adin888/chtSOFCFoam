@@ -48,18 +48,18 @@
     	electroChemProperties
     );
 
-    dimensionedScalar ibar0
+    dimensionedScalar jbar0
     (
-	"ibar0",
-	dimensionSet(0, -2, 0, 0, 0, 1, 0),
-	electroChemProperties
+        "jbar0",
+        dimensionSet(0, -2, 0, 0, 0, 1, 0),
+        electroChemProperties
     );
 
     dimensionedScalar Tinit
     (
-	"Tinit",
-	dimensionSet(0, 0, 0, 1, 0, 0, 0),
-	electroChemProperties
+        "Tinit",
+        dimensionSet(0, 0, 0, 1, 0, 0, 0),
+        electroChemProperties
     );
 
     scalar numCells
@@ -69,15 +69,15 @@
 
     dimensionedScalar Rhat
     (
-	"Rhat",
-	dimensionSet(1, 4, -3, 0, 0, -2, 0),
-	electroChemProperties
+        "Rhat",
+        dimensionSet(1, 4, -3, 0, 0, -2, 0),
+        electroChemProperties
     );
 
     dimensionedScalar Rhat0
     (
-	"Rhat0",
-	dimensionSet(1, 4, -3, 0, 0, -2, 0),
-	electroChemProperties
+        "Rhat0",
+        dimensionSet(1, 4, -3, 0, 0, -2, 0),
+        electroChemProperties
     );
 

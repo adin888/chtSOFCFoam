@@ -21,10 +21,10 @@
 		{
 
 
-		    dimensionedScalar ibar ("ibar", dimensionSet(0, -2, 0, 0, 0, 1, 0), 0.0);
+		    dimensionedScalar jbar ("jbar", dimensionSet(0, -2, 0, 0, 0, 1, 0), 0.0);
 		    dimensionedScalar temp ("temp", dimensionSet(0, 0, 0, 1, 0, 0, 0), 0.0);
 
-		    ibar.value() = 0.0;
+		    jbar.value() = 0.0;
 		    scalar rCurrentDV = 0.0;
 		    scalar volume	= 0.0;
 		    scalar sumVolume = 0.0;
@@ -38,16 +38,15 @@
 			sumVolume += volume;
 			counter2 += 1;
 			V.value() = voltage[zn1[j]];
-
 		    }
 
-		reduce(sumVolume,plusOp<scalar>());
-		reduce(rCurrentDV,plusOp<scalar>());
-		reduce(counter2,plusOp<scalar>());
+			reduce(sumVolume,plusOp<scalar>());
+			reduce(rCurrentDV,plusOp<scalar>());
+			reduce(counter2,plusOp<scalar>());
 
 
-		    ibar.value() = rCurrentDV/sumVolume;
-		    Info << nl << "sumVolume" << sumVolume << endl;
+		    jbar.value() = rCurrentDV/sumVolume;
+		    Info << nl << "sumVolume = " << sumVolume << endl;
 //		    Info << nl << "rCurrentDV" << rCurrentDV << endl;
 //		    Info << nl << "counter2" << counter2 << endl;
 
@@ -57,17 +56,17 @@
 			 << Foam::max(Nernst) << endl;
 
 //		    Info << "min,mean,max(i): "
-//			 << Foam::min(idensityIn) <<" , " << ibar.value() << " , "
+//			 << Foam::min(idensityIn) <<" , " << jbar.value() << " , "
 //			 << Foam::max(idensityIn) << endl;
 
 		    // voltage correction
 		    if (galvanostatic)
 		    {
 
-			V += Rhat*(ibar - ibar0);
+			V += Rhat*(jbar - jbar0);
 
-			Info << "ibar0 = " << ibar0.value()
-			     << "    ibar = " << ibar.value()
+			Info << "jbar0 = " << jbar0.value()
+			     << "    jbar = " << jbar.value()
 			     << "    V = " << V.value() << endl;
 
 			forAll(zn1, j)
@@ -77,7 +76,7 @@
 		    }
 		    else
 		    {
-			Info << "    ibar = " << ibar.value()
+			Info << "    jbar = " << jbar.value()
 			     << "    V = " << V.value() << endl;
 		    }
 

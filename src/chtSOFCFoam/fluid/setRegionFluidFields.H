@@ -8,7 +8,7 @@
     
     
     
-    
+    /*******************************************************/
     /*
     - read and store the chtSOFCSpecieProperties  
     */
@@ -46,10 +46,8 @@
         activationOverpotentialModel::New(chtSOFCSpeciesNames, chtSOFCSpeciePropertiesDict)
     );
     
+    /*******************************************************/
     
-    
-    
-
     label inertIndex = -1;
     if (Y.size())
     {

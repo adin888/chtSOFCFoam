@@ -1,13 +1,7 @@
-    label cathodePatchId;
-    label cathodePatchSize;
-    label anodePatchId;
-    label anodePatchSize; 
-    label electrolyteAnodePatchId;
-    label electrolyteCathodePatchId;
-    const polyPatch* cathodePatch = nullptr;
-    const polyPatch* anodePatch = nullptr;
-    const polyPatch* electrolyteAnodePatch = nullptr;
-    const fvMesh* electrolyteMesh = nullptr;
+    label cathodePatchId, cathodePatchSize, anodePatchId, anodePatchSize;
+    label electrolyteAnodePatchId, electrolyteCathodePatchId;
+    const polyPatch *cathodePatch = nullptr, *anodePatch = nullptr, *electrolyteAnodePatch = nullptr;
+    const fvMesh *electrolyteMesh = nullptr;
 
     forAll(fluidRegions, i)
     {
@@ -51,4 +45,5 @@
     	*cathodePatch,
     	*anodePatch
     );
+
 

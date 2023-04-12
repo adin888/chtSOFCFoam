@@ -9,7 +9,7 @@ runApplication ./Allrun.pre
 #runApplication $(getApplication)
 
 # Decompose
-runApplication decomposePar -allRegions
+#runApplication decomposePar -allRegions
 
 # Run
 #runParallel $(getApplication)

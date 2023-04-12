@@ -16,7 +16,7 @@ FoamFile
 
 regions
 (
-    fluid       (fuel air)
+    fluid       (air fuel)
     solid       (electrolyte interconnect0 interconnect1)
 );
 

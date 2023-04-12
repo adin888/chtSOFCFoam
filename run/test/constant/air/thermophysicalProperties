@@ -67,8 +67,8 @@ O2
         molWeight       31.9988;
         nElectrons      4;
         rSign		-1;
-        hForm		205.152;
-        sForm		191.609;
+        hForm		0;
+        sForm		205.152;
         stoiCoeff       0.5;
     }
     thermodynamics

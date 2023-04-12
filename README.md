@@ -21,6 +21,7 @@ The main differences between this solver and openFuelCell are as follows:
 1. Review and optimize the variable definition locations and code structure due to changes in computational logic.
 2. Compare the solver with examples provided by openFuelCell to verify the correctness of the code.
 3. Create a user manual.
+4. Try to use other methodes to calculate electrochemical reactions.
 
 ## Reference
 

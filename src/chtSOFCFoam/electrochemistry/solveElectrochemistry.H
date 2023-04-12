@@ -2,24 +2,19 @@
     Info<< "\nSolving for electrochemistry " << endl;
     
     label patchId = (fluidRegionName == "fuel" ? anodePatchId : cathodePatchId);
-    label airSpecieSize;
-    label fuelSpecieSize; 
     
-    const scalar R = constant::physicoChemical::R.value();
-    const scalar Pstd = constant::standard::Pstd.value();
-    const scalar F = eletrochemistryConstant::F.value();
-    const scalar FF = eletrochemistryConstant::FF.value();
-    const scalar Tr = 298.15;  //reference Temperature [K] for thermodynamics
+    const scalar& R = constant::physicoChemical::R.value();
+    const scalar& Pstd = constant::standard::Pstd.value();
+    const scalar& F = eletrochemistryConstant::F.value();
+    const scalar& FF = eletrochemistryConstant::FF.value();
+    const scalar& Tr = 298.15;  //reference Temperature [K] for thermodynamics
       
-    scalarField jDensityOld(anodePatchSize);   
-    scalarField jDensityNew(anodePatchSize); 
-    scalarField jDensityAnode(anodePatchSize);
-    scalarField mFluxOld(anodePatchSize);    
     scalarField moleFraction(anodePatchSize, 0);
     scalarField NernstAnode(anodePatchSize, 0);
     
     const scalarField& anodeT=thermo.T().boundaryFieldRef()[anodePatchId];
     const scalarField& cathodeT=thermo.T().boundaryFieldRef()[cathodePatchId];
+	const scalarField& anodeP = p.boundaryFieldRef()[anodePatchId];
     
     PtrList<scalarField> xSpecie (chtSOFCSpecies.size());  //mole fractions of species
     
@@ -29,15 +24,6 @@
     /* calculate Nernst potential in Anode*/
     #include "NernstEqn.H"
     
-    /* calculate area specific resistance resist based on anodeT */
-    #include "ASRfunction.H"
-    
-    /* Takes voltage from cell center of cell adjacent to boundary face and applies it at the face */
-    forAll(*electrolyteAnodePatch, facei)
-    {
-    	voltage.boundaryFieldRef()[electrolyteAnodePatchId][facei] =
-    	voltage[electrolyteAnodePatch->faceCells()[facei]];
-    }
     /* calculate mass flux from "old" velocity boundary condition and "old" current density on cathode*/
     if(fluidRegionName == "air")
     {
@@ -49,70 +35,94 @@
             / mesh.magSf().boundaryField()[cathodePatchId])
         );
         
-	jDensityOld = cathodeToAnode.faceInterpolate
-	(
-	    -4. * FF * mFluxOld / 31.9988                  //Magic numbers - Total mass flow is that of O2
-	);
+		jDensityOld = cathodeToAnode.faceInterpolate
+		(
+			-4. * FF * mFluxOld / 31.9988                  //Magic numbers - Total mass flow is that of O2
+		);
+
+		if (nOuterCorr <= 1) 
+		{
+			jDensityOld = jbar0.value();                      //First time step
+		} 
     }
     
-    if (runTime.value() <= 1) 
-    {
-    	jDensityOld = ibar0.value();                      //First time step
-    }        
-    
-    
-    /* 
-    - Solve Current
-    - Add etaA and etaC into the current function after the pre-iteration
-    */ 
- 
 
-        if (runTime.value() > PreIterAct)
-	{
-	    jDensityNew = 
-	    (
-	         ( NernstAnode
-	         - voltage.boundaryField()[electrolyteAnodePatchId] 
-	         - etaA.boundaryField()[electrolyteAnodePatchId] 
-	         - etaC.boundaryField()[electrolyteAnodePatchId])
-	         / resist
-	    );
-	}
-	else
-	{
-	     jDensityNew = 
-	     (
-	         ( NernstAnode 
-	         - voltage.boundaryField()[electrolyteAnodePatchId])
-	         / resist
-	     );
-	}
-	
-    jDensityAnode = 
-    (
-    	relaxj 
-    	* jDensityNew 
-    	+ (1-relaxj)
-    	* jDensityOld
-    );
-	
-    // ensure jDensity > 0
-    //dimensionedScalar smallDim("smallDim", jDensity.dimensions(), SMALL);
-    
-    jDensityAnode = Foam::max(jDensityAnode, SMALL);
-            Info << "min,mean,max(jDensityAnode: "
-                  << Foam::gMin(jDensityAnode) <<" , "
-                  << Foam::gAverage(jDensityAnode) <<" , "
-                 << Foam::gMax(jDensityAnode) << endl;        
-            Info << "min,mean,max(jDensityNew): "
-                  << Foam::gMin(jDensityNew) <<" , "
-                  << Foam::gAverage(jDensityNew) <<" , "
-                 << Foam::gMax(jDensityNew) << endl;        
-            Info << "min,mean,max(jDensityOld): "
-                  << Foam::gMin(jDensityOld) <<" , "
-                  << Foam::gAverage(jDensityOld) <<" , "
-                 << Foam::gMax(jDensityOld) << endl;        
 
+	/* Calculate the electrochemistry when the loop reaches the last region */    
+	if(i == (fluidRegions.size() - 1))
+	{
+		/* calculate area specific resistance resist based on anodeT */
+		#include "ASRfunction.H"
+		
+		/* Takes voltage from cell center of cell adjacent to boundary face and applies it at the face */
+		forAll(*electrolyteAnodePatch, facei)
+		{
+			voltage.boundaryFieldRef()[electrolyteAnodePatchId][facei] =
+			voltage[electrolyteAnodePatch->faceCells()[facei]];
+		}
+		
+		/* 
+		- Solve Current
+		- Add etaA and etaC into the current function after the pre-iteration
+		*/ 
+
+		if (runTime.value() > PreIterAct)
+		{
+			jDensityNew = 
+			(
+				( NernstAnode
+				- voltage.boundaryField()[electrolyteAnodePatchId] 
+				- etaA.boundaryField()[electrolyteAnodePatchId] 
+				- etaC.boundaryField()[electrolyteAnodePatchId])
+				/ resist
+			);
+		}
+		else
+		{
+			jDensityNew = 
+			(
+				( NernstAnode 
+				- voltage.boundaryField()[electrolyteAnodePatchId])
+				/ resist
+			);
+		}
+
+		/* Relax Density */
+		jDensityAnode = 
+		(
+			relaxj 
+			* jDensityNew 
+			+ (1-relaxj)
+			* jDensityOld
+		);
+		
+		/* ensure jDensity > 0 */ 
+		jDensityAnode = Foam::max(jDensityAnode, SMALL);
+		Info << "min,mean,max(jDensityAnode): "
+			<< Foam::gMin(jDensityAnode) <<" , "
+			<< Foam::gAverage(jDensityAnode) <<" , "
+			<< Foam::gMax(jDensityAnode) << endl;        
+		Info << "min,mean,max(jDensityNew): "
+			<< Foam::gMin(jDensityNew) <<" , "
+			<< Foam::gAverage(jDensityNew) <<" , "
+			<< Foam::gMax(jDensityNew) << endl;        
+		Info << "min,mean,max(jDensityOld): "
+			<< Foam::gMin(jDensityOld) <<" , "
+			<< Foam::gAverage(jDensityOld) <<" , "
+			<< Foam::gMax(jDensityOld) << endl;     
+		// Smear boundary current and Nernst potential over electrolyte volume
+		#include "smearJDensity.H"
+	
+		// Calculate mean current density
+		#include "solveCurrent.H"
+
+		// mean current density
+		Info << "min,mean,max(current): "
+			<< gMin(jDensity.primitiveFieldRef()) << " , "
+			<< gAverage(jDensity.primitiveFieldRef()) << " , "
+			<< gMax(jDensity.primitiveFieldRef()) << endl; 
+	}   
+    
     // Activation overpotential - added SBB 04-09-2013
     // scalarField etaAnode is computed from an inverse Butler-Volmer eqn.
   	
@@ -120,18 +130,6 @@
     {
     	#include "activationOverpotential.H"
     }
-
-    // Smear boundary current and Nernst potential over electrolyte volume
-    #include "smearJDensity.H"
-  
-    // Calculate mean current density
-    #include "solveCurrent.H"
-
-    // mean current density
-    Info << "min,mean,max(current): "
-         << gMin(jDensity.primitiveFieldRef()) << " , "
-         << gAverage(jDensity.primitiveFieldRef()) << " , "
-         << gMax(jDensity.primitiveFieldRef()) << endl;
 
     // Calculate electrochemical heating
     #include "electrochemicalHeating.H" 
@@ -147,66 +145,66 @@
     	scalarField mFluxSum(anodePatchSize, 0);
     	
     	forAll(chtSOFCSpecies, s)
-	{
-  	    /* 
-  	    - calculate the mass flow of non-inert species 
-  	    - computed by Faraday’s law 
-  	    */
-  	    if (chtSOFCSpecies[s].nE() != 0)
-  	    {
-  	    	mFlux[s] = 
-  	    	(
-  	    	    chtSOFCSpecies[s].rSign() * chtSOFCSpecies[s].W()
-  	    	    * jDensityAnode / (FF * chtSOFCSpecies[s].nE())
-  	    	);
-  	    	mFluxSum += mFlux[s];
-  	    	isFlux[s] = "true";
-  	    }
-  	    Info << "s species[] nE rSign hForm sForm isFlux[] mFlux[] ="
-  	    << s << " " << chtSOFCSpecies[s].name() << " " 
-  	    << chtSOFCSpecies[s].nE() << " " << chtSOFCSpecies[s].rSign() << " " 
-  	    << chtSOFCSpecies[s].hForm() << " " << chtSOFCSpecies[s].sForm() << " " 
-  	    << isFlux[s] << " " << gSum(mFlux[s]) << nl;
-	}
-	Info << endl;
+		{
+			/* 
+			- calculate the mass flow of non-inert species 
+			- computed by Faraday’s law 
+			*/
+			if (chtSOFCSpecies[s].nE() != 0)
+			{
+				mFlux[s] = 
+				(
+					chtSOFCSpecies[s].rSign() * chtSOFCSpecies[s].W()
+					* jDensityAnode / (FF * chtSOFCSpecies[s].nE())
+				);
+				mFluxSum += mFlux[s];
+				isFlux[s] = "true";
+			}
+			Info << "s species[] nE rSign hForm sForm isFlux[] mFlux[] ="
+			<< s << " " << chtSOFCSpecies[s].name() << " " 
+			<< chtSOFCSpecies[s].nE() << " " << chtSOFCSpecies[s].rSign() << " " 
+			<< chtSOFCSpecies[s].hForm() << " " << chtSOFCSpecies[s].sForm() << " " 
+			<< isFlux[s] << " " << gSum(mFlux[s]) << nl;
+		}
+		Info << endl;
 	
-	/*
-	- calculate mass fraction boundary conditions YiBC for non-inert species
-	- use fixed Gradient boundary condtion
-	*/
-	forAll(Y, i)
-	{
-	    if (i != inertIndex)
-	    {
-	    
-	    	fixedGradientFvPatchScalarField& YiBC =
-	    	    refCast<fixedGradientFvPatchScalarField>
-	    	    (
-	    	    	Y[i].boundaryFieldRef()[patchId]
-    	    	    );
-    	        
-    	        /* mass fluxes on cathode patch(air region) are interpolated from anode patch */
-    	    	YiBC.gradient() = 
-    	    	(
-    	    	    (fluidRegionName == "fuel" ? mFlux[i] : anodeToCathode.faceInterpolate(mFlux[i])())  
-    	    	    * (1.0 - YiBC)
-    	    	);
-    	    	
-    	    	forAll(Y, j)
-    	    	{
-    	    	    if((j != i) && isFlux[j])
-    	    	    {
-    	    	    	YiBC.gradient() = 
-	    	    	(
-	    	    	    (fluidRegionName == "fuel" ? mFlux[j] : anodeToCathode.faceInterpolate(mFlux[j])())
-	    	    	    * YiBC
-	    	    	);
-    	    	    }
-    	    	}
-    	    	
-    	    	YiBC.gradient() /= turbulence.muEff(patchId) + SMALL;
-	    }
-	}
+		/*
+		- calculate mass fraction boundary conditions YiBC for non-inert species
+		- use fixed Gradient boundary condtion
+		*/
+		forAll(Y, i)
+		{
+			if (i != inertIndex)
+			{
+			
+				fixedGradientFvPatchScalarField& YiBC =
+					refCast<fixedGradientFvPatchScalarField>
+					(
+						Y[i].boundaryFieldRef()[patchId]
+					);
+					
+					/* mass fluxes on cathode patch(air region) are interpolated from anode patch */
+					YiBC.gradient() = 
+					(
+						(fluidRegionName == "fuel" ? mFlux[i] : anodeToCathode.faceInterpolate(mFlux[i])())  
+						* (1.0 - YiBC)
+					);
+					
+					forAll(Y, j)
+					{
+						if((j != i) && isFlux[j])
+						{
+							YiBC.gradient() = 
+							(
+								(fluidRegionName == "fuel" ? mFlux[j] : anodeToCathode.faceInterpolate(mFlux[j])())
+								* YiBC
+							);
+						}
+					}
+					
+				YiBC.gradient() /= turbulence.muEff(patchId) + SMALL;
+			}
+		}
     	/* calculate velocity boundary condition */
     	U.boundaryFieldRef()[patchId] ==
     	(

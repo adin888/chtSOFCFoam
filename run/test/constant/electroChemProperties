@@ -14,13 +14,13 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// V=1.0  @ i=1000
-// V=0.95 @ i=2000
-// V=0.9  @ i=3000
-// V=0.85 @ i=4000
-// V=0.8  @ i=5000
-// V=0.75 @ i=6000
-// V=0.7  @ i=7000
+// V=1.0  @ j=1000
+// V=0.95 @ j=2000
+// V=0.9  @ j=3000
+// V=0.85 @ j=4000
+// V=0.8  @ j=5000
+// V=0.75 @ j=6000
+// V=0.7  @ j=7000
 
 // run mode
 // true ==> galvanostatic
@@ -38,7 +38,7 @@ voltage         0.80;         // volts
 // galvanostatic ==> prescribed value
 // potentiostaic ==> initial value
 //
-ibar0           5000.0;    // amperes/m^2
+jbar0           5000.0;    // amperes/m^2
 
 // available fuel cell types: SOFC / HTPEFC
 fuelCellType    SOFC;

@@ -19,5 +19,5 @@ PIMPLE
     nOuterCorrectors 1;
 }
 
-
+//coupledEnergyField true;
 // ************************************************************************* //

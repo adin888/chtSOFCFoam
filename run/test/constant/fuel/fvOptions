@@ -42,20 +42,4 @@ porousZone2
     }
 }
 
-energySource
-{
-        type            scalarSemiImplicitSource;
-
-        timeStart       0.0;
-        duration        1.0;
-        selectionMode   cellZone;
-        cellZone        anode;
-
-        volumeMode      specific;
-        sources
-        {
-            h           (2e7 0);  // kg/m/s^3
-        }
-}
-
 //************************************************************************** //

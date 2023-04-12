@@ -36,13 +36,17 @@
 //                deltaG_rxn = deltaH_rxn - T*deltaS_rxn = -192.56 kJ/mol
 //
 //		  scalar Tr = 298.15;    // reference temperature
-
-    scalarField cpInt(anodePatchSize, 0);
+/* 
+- integral of Cp(T)dT for enthalpy
+- integral of (Cp(T)/T)dT for entropy
+*/
+    scalarField enthalpyInt(anodePatchSize, 0);
+    scalarField entropyInt(anodePatchSize, 0);
 
     // update with fuel reactants and products
     forAll(chtSOFCSpecies, s)
     {
-    	const label& chemFlag = chtSOFCSpecies[s].rSign(); // product or reactant
+    	const label& chemFlag = chtSOFCSpecies[s].rSign(); // product(1) or reactant(-1)
     	
     	if(chemFlag == 0)
     	{
@@ -51,64 +55,61 @@
     	
     	forAll(anodeT, celli)
     	{
-            const scalar& currentT = anodeT[celli];
-            cpInt[celli] = 
+            const scalar& currentT = Foam::max(anodeT[celli], SMALL);
+            const scalar& currentP = Foam::max(anodeP[celli], SMALL);
+
+            enthalpyInt[celli] = 
             (
-            	specieThermoData[s].Cp(0, currentT)
-            	- specieThermoData[s].Cp(0, Tr)
-            ); // Assuming p = 0 since Cp is not pressure-dependent for ideal gases
-    	    
-   	 }
-        
-        
-	// product
-	scalar stoiCoeffi = chtSOFCSpecies[s].stoiCoeff();
+            	specieThermoData[s].Ha(currentP, currentT)
+            	- specieThermoData[s].Ha(currentP, Tr)
+            ); 
+            entropyInt[celli] = 
+            (
+            	specieThermoData[s].S(currentP, currentT)
+            	- specieThermoData[s].S(currentP, Tr)
+            ); 
+   	    }
 
-	Qrxn *= Foam::pow(Foam::pow(xSpecie[s], stoiCoeffi),chemFlag);
+        const scalar& stoiCoeffs = chtSOFCSpecies[s].stoiCoeff();
 
-	scalarField Hi = chemFlag * stoiCoeffi *
-	(
-	   chtSOFCSpecies[s].hForm()
-	   + cpInt
-	);
-	deltaHrxn += Hi;
+        Qrxn *= Foam::pow(Foam::pow(xSpecie[s], stoiCoeffs),chemFlag);
 
-	scalarField Si = chemFlag * stoiCoeffi *
-	(
-	   chtSOFCSpecies[s].sForm()
-	   + cpInt
-	);
-	deltaSrxn += Si;
+        deltaHrxn += chemFlag * stoiCoeffs *
+        (
+            chtSOFCSpecies[s].hForm()
+            + enthalpyInt
+        );
 
-       
-        Info << chtSOFCSpecies[s].name() << "  " << stoiCoeffi << nl;
-        Info<< "   mean H(T) = " << gAverage(Hi) << nl;
-        Info<< "   mean S(T) = " << gAverage(Si) << endl;
-        
+        deltaSrxn += chemFlag * stoiCoeffs *
+        (
+            chtSOFCSpecies[s].sForm()
+            + entropyInt
+        );
+
+        Info << chtSOFCSpecies[s].name() << "  " << stoiCoeffs << nl;
+        Info<< "   mean deltaHrxn = " << gAverage(deltaHrxn) << nl;
+        Info<< "   mean deltaSrxn = " << gAverage(deltaSrxn) << endl;
     }
 
 
-/* Performed only after calculations for chemical reactions in all fluid regions*/
+/* Performed only after calculations for chemical reactions in all fluid regions */
     if(i == (fluidRegions.size() - 1))
     {
         // Gibbs
         // -----
-        scalarField deltaGrxn = deltaHrxn - anodeT*deltaSrxn;
-
-        Info<< " mean deltaHrxn = " << gAverage(deltaHrxn) << nl
-        << " mean anodeT    = " << gAverage(anodeT)    << nl
-        << " mean deltaSrxn = " << gAverage(deltaSrxn) << nl
-        << " mean TdeltaS   = " << gAverage(anodeT*deltaSrxn) << nl
-        << " mean deltaG    = " << gAverage(deltaGrxn) << nl
-        << endl;
+        //scalarField deltaGrxn = deltaHrxn - anodeT*deltaSrxn;
 
         // Nernst
         // ------
         NernstAnode =
-            (-deltaGrxn - R * anodeT * Foam::log(Qrxn))
+            (
+                -(deltaHrxn - anodeT*deltaSrxn)
+                - R * anodeT * Foam::log(Qrxn)
+            )
             / (zRxn * F);
 
-        Info<< "min,mean,max NernstAnode = " << gMin(NernstAnode) << "  "
+        Info<< << " mean anodeT   = " << gAverage(anodeT) 
+        << "min,mean,max NernstAnode = " << gMin(NernstAnode) << "  "
         << gAverage(NernstAnode) << "  " << gMax(NernstAnode) << endl;
     }
 

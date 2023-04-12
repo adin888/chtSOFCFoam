@@ -1,11 +1,6 @@
     // calculate volumetric electrochemical heating
 
     Info << nl << "Calculating electrochemical heating" << endl;
-
-    // jEA applied in cell volumes (not patch)
-    scalarField jEA = jDensity.primitiveFieldRef();
-
-
     //scalar Tr = 298.15;  //reference Temperature [K] for enthalpy calculations
 
 
@@ -37,29 +32,26 @@
         {
             forAll(anodeT, celli)
     	    {
-                scalar currentT = anodeT[celli];
-                cpInt[celli] = 
+                const scalar& currentT = anodeT[celli];
+                const scalar& currentP = anodeP[celli];
+                enthalpyInt[celli] = 
                 (
-            	    specieThermoData[s].Cp(0, currentT)
-        	    - specieThermoData[s].Cp(0, Tr)
-                ); // Assuming p = 0 since Cp is not pressure-dependent for ideal gases
-    	    
-   	     }
-            //hSp.set(s, cpInt);
+            	    specieThermoData[s].Ha(currentP, currentT)
+        	        - specieThermoData[s].Ha(currentP, Tr)
+                ); 
+   	        }  
 
             hFormSum += chtSOFCSpecies[s].hForm()/chtSOFCSpecies[s].nE();
-            // allow reactions on airside, S.Keuler (Dec. 2013)
-         
 
             if(chtSOFCSpecies[s].rSign() > 0)
             {
                 // product
-                hProdSrc += cpInt/chtSOFCSpecies[s].nE();
+                hProdSrc += enthalpyInt/chtSOFCSpecies[s].nE();
             }
             else if(chtSOFCSpecies[s].rSign() < 0)
             {
                 // reactant
-                hReactSrc += cpInt/chtSOFCSpecies[s].nE();
+                hReactSrc += enthalpyInt/chtSOFCSpecies[s].nE();
             }
             else
             {
@@ -70,33 +62,35 @@
     //Info<< "sum(hReactSrcAir)= " << gSum(hReactSrcAir) << nl;
     //Info<< "sum(hProdSrcAir)= " << gSum(hProdSrcAir) << nl;
     //Info<< "sum(prod - react)=" << gSum(hProdSrcAir - hReactSrcAir) << nl;
-
-/* -------------------------------------------------------------------------- */
-
-    scalarField volMolRate = jEA/F/hE.value();    // [mol/(m^3 s)]
-
-    hSource +=(hProdSrc - hReactSrc)*volMolRate;
-
+    
+    hSource +=(hProdSrc - hReactSrc);
     //Info<< "hSource  min max sum: "
     //    << gMin(hSource) << " "
     //    << gMax(hSource) << " " << gSum(hSource) << nl;
     //Info<< nl;
+/* -------------------------------------------------------------------------- */
 
-//
-//    scalarField Tsource =
-//        -(H2Oform + hH2O - hH2 -0.5*hO2)*jEA/(2*F)/hE.value()
-//        - jEA*V.value()/hE.value();
-//
+    if(i == (fluidRegions.size() - 1))
+    {
+        // jEA applied in cell volumes (not patch)
+        const scalarField& jEA = jDensity.primitiveFieldRef();
+        scalarField volMolRate = jEA/F/hE.value();    // [mol/(m^3 s)]
 
-    scalarField& electrochemicalHeatingIn = electrochemicalHeating.primitiveFieldRef();
-    electrochemicalHeatingIn =
-    (
-        -hFormSum*volMolRate - hSource - jEA*voltage/hE.value()
-    );
-    electrochemicalHeating.correctBoundaryConditions();
+        //
+        //    scalarField Tsource =
+        //        -(H2Oform + hH2O - hH2 -0.5*hO2)*jEA/(2*F)/hE.value()
+        //        - jEA*V.value()/hE.value();
+        //
+        scalarField& electrochemicalHeatingIn = electrochemicalHeating.primitiveFieldRef();
+        electrochemicalHeatingIn =
+        (
+            -hFormSum*volMolRate - hSource*volMolRate - jEA*voltage/hE.value()
+        );
+        electrochemicalHeating.correctBoundaryConditions();
 
-    Info << "min,mean,max(electrochemicalHeating): "
-         << gMin(electrochemicalHeating.primitiveFieldRef()) << "  "
-         << gAverage(electrochemicalHeating.primitiveFieldRef()) << "  "
-         << gMax(electrochemicalHeating.primitiveFieldRef()) << endl;
+        Info << "min,mean,max(electrochemicalHeating): "
+            << gMin(electrochemicalHeating.primitiveFieldRef()) << "  "
+            << gAverage(electrochemicalHeating.primitiveFieldRef()) << "  "
+            << gMax(electrochemicalHeating.primitiveFieldRef()) << endl;
+    }
 
