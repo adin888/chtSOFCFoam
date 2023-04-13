@@ -3,18 +3,19 @@
     
     label patchId = (fluidRegionName == "fuel" ? anodePatchId : cathodePatchId);
     
-    const scalar& R = constant::physicoChemical::R.value();
-    const scalar& Pstd = constant::standard::Pstd.value();
-    const scalar& F = eletrochemistryConstant::F.value();
-    const scalar& FF = eletrochemistryConstant::FF.value();
-    const scalar& Tr = 298.15;  //reference Temperature [K] for thermodynamics
+    /*const dimensionedScalar& R = constant::physicoChemical::R.value();
+    const dimensionedScalar& Pstd = constant::standard::Pstd.value();
+    const dimensionedScalar& F = eletrochemistryConstant::F.value();
+    const dimensionedScalar& FF = eletrochemistryConstant::FF.value();
+    const dimensionedScalar& Tr = 298.15;  //reference Temperature [K] for thermodynamics*/
+
+	const scalar& R = constant::physicoChemical::R.value(); //[J/(mol*K)]
+    const scalar& Pstd = constant::standard::Pstd.value();  //[Pa]
+    const scalar& F = eletrochemistryConstant::F.value();   //[C/mol]
+    const scalar& FF = eletrochemistryConstant::FF.value(); //[C/kmol]
       
     scalarField moleFraction(anodePatchSize, 0);
     scalarField NernstAnode(anodePatchSize, 0);
-    
-    const scalarField& anodeT=thermo.T().boundaryFieldRef()[anodePatchId];
-    const scalarField& cathodeT=thermo.T().boundaryFieldRef()[cathodePatchId];
-	const scalarField& anodeP = p.boundaryFieldRef()[anodePatchId];
     
     PtrList<scalarField> xSpecie (chtSOFCSpecies.size());  //mole fractions of species
     
@@ -23,7 +24,14 @@
     
     /* calculate Nernst potential in Anode*/
     #include "NernstEqn.H"
-    
+        
+    // Activation overpotential - added SBB 04-09-2013
+    // scalarField etaAnode is computed from an inverse Butler-Volmer eqn. 	
+    if (runTime.value() > PreIterAct)
+    {
+    	#include "activationOverpotential.H"
+    }
+
     /* calculate mass flux from "old" velocity boundary condition and "old" current density on cathode*/
     if(fluidRegionName == "air")
     {
@@ -34,16 +42,27 @@
             & mesh.Sf().boundaryField()[cathodePatchId])
             / mesh.magSf().boundaryField()[cathodePatchId])
         );
-        
+		Info << "min,mean,max(mFluxOld): "
+		<< Foam::gMin(mFluxOld) <<" , "
+		<< Foam::gAverage(mFluxOld) <<" , "
+		<< Foam::gMax(mFluxOld) << endl;   
+        /*
+		- Total mass flow is that of O2
+		- for O2, nElectrons = 4, molWeight = 31.9988
+		*/
 		jDensityOld = cathodeToAnode.faceInterpolate
 		(
-			-4. * FF * mFluxOld / 31.9988                  //Magic numbers - Total mass flow is that of O2
+			-4. * FF * mFluxOld / 31.9988                  
 		);
 
-		if (nOuterCorr <= 1) 
+		if (runTime.value() <= 0.1) 
 		{
-			jDensityOld = jbar0.value();                      //First time step
+			jDensityOld = jbar0.value();                      
 		} 
+		Info << "min,mean,max(jDensityOld): "
+		<< Foam::gMin(jDensityOld) <<" , "
+		<< Foam::gAverage(jDensityOld) <<" , "
+		<< Foam::gMax(jDensityOld) << endl;    
     }
     
 
@@ -105,11 +124,11 @@
 		Info << "min,mean,max(jDensityNew): "
 			<< Foam::gMin(jDensityNew) <<" , "
 			<< Foam::gAverage(jDensityNew) <<" , "
-			<< Foam::gMax(jDensityNew) << endl;        
+			<< Foam::gMax(jDensityNew) << endl;    
 		Info << "min,mean,max(jDensityOld): "
 			<< Foam::gMin(jDensityOld) <<" , "
 			<< Foam::gAverage(jDensityOld) <<" , "
-			<< Foam::gMax(jDensityOld) << endl;     
+			<< Foam::gMax(jDensityOld) << endl;   	     
 		// Smear boundary current and Nernst potential over electrolyte volume
 		#include "smearJDensity.H"
 	
@@ -117,102 +136,16 @@
 		#include "solveCurrent.H"
 
 		// mean current density
-		Info << "min,mean,max(current): "
-			<< gMin(jDensity.primitiveFieldRef()) << " , "
-			<< gAverage(jDensity.primitiveFieldRef()) << " , "
-			<< gMax(jDensity.primitiveFieldRef()) << endl; 
+		Info << "min,mean,max(current jDensity): "
+			<< gMin(jDensity.primitiveField()) << " , "
+			<< gAverage(jDensity.primitiveField()) << " , "
+			<< gMax(jDensity.primitiveField()) << endl; 
+
+		//Calculate mFlux and set boudary conditions for mass fractions and velocity
+		#include "mFlux.H"
 	}   
-    
-    // Activation overpotential - added SBB 04-09-2013
-    // scalarField etaAnode is computed from an inverse Butler-Volmer eqn.
-  	
-    if (runTime.value() > PreIterAct)
-    {
-    	#include "activationOverpotential.H"
-    }
 
     // Calculate electrochemical heating
     #include "electrochemicalHeating.H" 
     
-    
-    /* Calculate boudary conditions for mass fractions and velocity */
-    {
-        label nSpec = chtSOFCSpecies.size();
-        
-        List<scalarField> mFlux(nSpec);
-    	List<Switch> isFlux(nSpec,false);
-    	
-    	scalarField mFluxSum(anodePatchSize, 0);
-    	
-    	forAll(chtSOFCSpecies, s)
-		{
-			/* 
-			- calculate the mass flow of non-inert species 
-			- computed by Faraday’s law 
-			*/
-			if (chtSOFCSpecies[s].nE() != 0)
-			{
-				mFlux[s] = 
-				(
-					chtSOFCSpecies[s].rSign() * chtSOFCSpecies[s].W()
-					* jDensityAnode / (FF * chtSOFCSpecies[s].nE())
-				);
-				mFluxSum += mFlux[s];
-				isFlux[s] = "true";
-			}
-			Info << "s species[] nE rSign hForm sForm isFlux[] mFlux[] ="
-			<< s << " " << chtSOFCSpecies[s].name() << " " 
-			<< chtSOFCSpecies[s].nE() << " " << chtSOFCSpecies[s].rSign() << " " 
-			<< chtSOFCSpecies[s].hForm() << " " << chtSOFCSpecies[s].sForm() << " " 
-			<< isFlux[s] << " " << gSum(mFlux[s]) << nl;
-		}
-		Info << endl;
-	
-		/*
-		- calculate mass fraction boundary conditions YiBC for non-inert species
-		- use fixed Gradient boundary condtion
-		*/
-		forAll(Y, i)
-		{
-			if (i != inertIndex)
-			{
-			
-				fixedGradientFvPatchScalarField& YiBC =
-					refCast<fixedGradientFvPatchScalarField>
-					(
-						Y[i].boundaryFieldRef()[patchId]
-					);
-					
-					/* mass fluxes on cathode patch(air region) are interpolated from anode patch */
-					YiBC.gradient() = 
-					(
-						(fluidRegionName == "fuel" ? mFlux[i] : anodeToCathode.faceInterpolate(mFlux[i])())  
-						* (1.0 - YiBC)
-					);
-					
-					forAll(Y, j)
-					{
-						if((j != i) && isFlux[j])
-						{
-							YiBC.gradient() = 
-							(
-								(fluidRegionName == "fuel" ? mFlux[j] : anodeToCathode.faceInterpolate(mFlux[j])())
-								* YiBC
-							);
-						}
-					}
-					
-				YiBC.gradient() /= turbulence.muEff(patchId) + SMALL;
-			}
-		}
-    	/* calculate velocity boundary condition */
-    	U.boundaryFieldRef()[patchId] ==
-    	(
-    	    (fluidRegionName == "fuel" ? mFluxSum : anodeToCathode.faceInterpolate(mFluxSum)())
-    	    / rho.boundaryFieldRef()[patchId]
-    	    * mesh.Sf().boundaryField()[patchId]
-    	    / mesh.magSf().boundaryField()[patchId]
-    	);
-	
-    }
 }

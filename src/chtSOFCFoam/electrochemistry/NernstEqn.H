@@ -40,55 +40,35 @@
 - integral of Cp(T)dT for enthalpy
 - integral of (Cp(T)/T)dT for entropy
 */
-    scalarField enthalpyInt(anodePatchSize, 0);
-    scalarField entropyInt(anodePatchSize, 0);
+    scalarField Grxn(anodePatchSize, 0); //[J/kg]
 
     // update with fuel reactants and products
     forAll(chtSOFCSpecies, s)
     {
     	const label& chemFlag = chtSOFCSpecies[s].rSign(); // product(1) or reactant(-1)
-    	
+    	const scalar& stoiCoeffs = chtSOFCSpecies[s].stoiCoeff();
     	if(chemFlag == 0)
     	{
     	    continue;
     	}
-    	
-    	forAll(anodeT, celli)
-    	{
-            const scalar& currentT = Foam::max(anodeT[celli], SMALL);
-            const scalar& currentP = Foam::max(anodeP[celli], SMALL);
 
-            enthalpyInt[celli] = 
+    	forAll(*anodeT, celli)
+    	{
+            const scalar& currentT = Foam::max((*anodeT)[celli], SMALL);
+            Grxn[celli] = 
             (
-            	specieThermoData[s].Ha(currentP, currentT)
-            	- specieThermoData[s].Ha(currentP, Tr)
-            ); 
-            entropyInt[celli] = 
-            (
-            	specieThermoData[s].S(currentP, currentT)
-            	- specieThermoData[s].S(currentP, Tr)
+            	specieThermoData[s].Gstd(currentT)  //[J/kg]
             ); 
    	    }
 
-        const scalar& stoiCoeffs = chtSOFCSpecies[s].stoiCoeff();
-
         Qrxn *= Foam::pow(Foam::pow(xSpecie[s], stoiCoeffs),chemFlag);
 
-        deltaHrxn += chemFlag * stoiCoeffs *
-        (
-            chtSOFCSpecies[s].hForm()
-            + enthalpyInt
-        );
+        Grxn *= (chtSOFCSpecies[s].W() / 10e3 * 10);       // [J/kg] to [J/mol]; why *10?
 
-        deltaSrxn += chemFlag * stoiCoeffs *
-        (
-            chtSOFCSpecies[s].sForm()
-            + entropyInt
-        );
+        deltaGrxn += (Grxn * chemFlag * stoiCoeffs);  
 
         Info << chtSOFCSpecies[s].name() << "  " << stoiCoeffs << nl;
-        Info<< "   mean deltaHrxn = " << gAverage(deltaHrxn) << nl;
-        Info<< "   mean deltaSrxn = " << gAverage(deltaSrxn) << endl;
+        Info<< "   mean deltaGrxn = " << gAverage(deltaGrxn) << endl;
     }
 
 
@@ -103,13 +83,13 @@
         // ------
         NernstAnode =
             (
-                -(deltaHrxn - anodeT*deltaSrxn)
-                - R * anodeT * Foam::log(Qrxn)
+                - deltaGrxn
+                - (*anodeT) * R * Foam::log(Qrxn)
             )
             / (zRxn * F);
 
-        Info<< << " mean anodeT   = " << gAverage(anodeT) 
-        << "min,mean,max NernstAnode = " << gMin(NernstAnode) << "  "
+        Info << " mean anodeT   = " << gAverage(*anodeT) 
+        << "  min,mean,max NernstAnode = " << gMin(NernstAnode) << "  "
         << gAverage(NernstAnode) << "  " << gMax(NernstAnode) << endl;
     }
 

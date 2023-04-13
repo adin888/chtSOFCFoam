@@ -153,3 +153,8 @@ inline void Foam::chtSOFCSpecie::operator=(const chtSOFCSpecie& st)
     stoiCoeff_ = st.stoiCoeff_;
 }
 
+inline Foam::chtSOFCSpecie* Foam::chtSOFCSpecie::clone() const
+{
+    return new chtSOFCSpecie(*this);
+}
+

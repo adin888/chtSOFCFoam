@@ -54,7 +54,8 @@ relax           0.1;    //relaxation parameter added SBB
 
 // initial Temperature for fuel and air T fields
 Tinit		1000.0;	  // K
-numCells	1;	  // K
+
+numCells	1;	  
 
 zRnx		2.0;          // the number of electrons transferred per fuel molecule in reaction
 

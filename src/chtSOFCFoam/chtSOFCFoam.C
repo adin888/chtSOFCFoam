@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     #include "setInitialMultiRegionDeltaT.H"
 
     #include "createCoupledRegions.H"
-    #include "readPatchInfo.H"
+    #include "setPatchAndField.H"
     #include "electrolyteThickness.H"
    
 

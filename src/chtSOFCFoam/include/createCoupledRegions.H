@@ -67,3 +67,4 @@ if (coupled && !fvMatrixAssemblyPtr)
         break;
     }
 }
+Info << "the fluid and solid are coupled? " << coupled << endl;

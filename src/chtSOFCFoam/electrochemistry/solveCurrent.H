@@ -1,53 +1,43 @@
 {
-
-
-	label znId1 = electrolyteMesh->cellZones().findZoneID("layer");
-
-    	Info << nl << "Solve current" << endl;
-
-	scalar stackVoltage = 0.0;
+	Info << nl << "Solve current" << endl;
 
 	for (int counter1=1; counter1<=numCells; counter1++)
 	{
-	    	Info << nl << "layer " << counter1 << endl;
+		Info << nl << "layer " << counter1 << endl;
 
 		char rLayer[16]; // string which will contain the number
 
 		sprintf (rLayer, "layer%d", counter1 ); // %d makes the result be a decimal integer
 
-		znId1 = electrolyteMesh->cellZones().findZoneID(rLayer);
-		labelList zn1(electrolyteMesh->cellZones()[znId1]);
+		label layerId = electrolyteMesh->cellZones().findZoneID(rLayer);
+		labelList layerCell(electrolyteMesh->cellZones()[layerId]);
 
 		{
-
-
 		    dimensionedScalar jbar ("jbar", dimensionSet(0, -2, 0, 0, 0, 1, 0), 0.0);
-		    dimensionedScalar temp ("temp", dimensionSet(0, 0, 0, 1, 0, 0, 0), 0.0);
 
 		    jbar.value() = 0.0;
-		    scalar rCurrentDV = 0.0;
+		    scalar jDensityDV = 0.0;
 		    scalar volume	= 0.0;
 		    scalar sumVolume = 0.0;
-		    scalar counter2 = 0.0;
+		    //scalar counter2 = 0.0;
 
-
-		    forAll(zn1, j)
+		    forAll(layerCell, j)
 		    {    		    
-			volume = mag(electrolyteMesh->V()[zn1[j]]);
-			rCurrentDV += jDensityIn[zn1[j]]*volume;
+			volume = mag(electrolyteMesh->V()[layerCell[j]]);
+			jDensityDV += jDensityIn[layerCell[j]]*volume;
 			sumVolume += volume;
-			counter2 += 1;
-			V.value() = voltage[zn1[j]];
+			//counter2 += 1;
+			V.value() = voltage[layerCell[j]];
 		    }
 
 			reduce(sumVolume,plusOp<scalar>());
-			reduce(rCurrentDV,plusOp<scalar>());
-			reduce(counter2,plusOp<scalar>());
+			reduce(jDensityDV,plusOp<scalar>());
+			//reduce(counter2,plusOp<scalar>());
 
 
-		    jbar.value() = rCurrentDV/sumVolume;
-		    Info << nl << "sumVolume = " << sumVolume << endl;
-//		    Info << nl << "rCurrentDV" << rCurrentDV << endl;
+		    jbar.value() = jDensityDV/sumVolume;
+//		    Info << nl << "sumVolume = " << sumVolume << endl;
+//		    Info << nl << "jDensityDV" << jDensityDV << endl;
 //		    Info << nl << "counter2" << counter2 << endl;
 
 
@@ -62,30 +52,24 @@
 		    // voltage correction
 		    if (galvanostatic)
 		    {
+				V += Rhat*(jbar - jbar0);
 
-			V += Rhat*(jbar - jbar0);
+				Info << "jbar0 = " << jbar0.value()
+					<< "    jbar = " << jbar.value()
+					<< "    V = " << V.value() << endl;
 
-			Info << "jbar0 = " << jbar0.value()
-			     << "    jbar = " << jbar.value()
-			     << "    V = " << V.value() << endl;
-
-			forAll(zn1, j)
-			{
-			voltage[zn1[j]] = V.value();
-			}
+				forAll(layerCell, j)
+				{
+				voltage[layerCell[j]] = V.value();
+				}
 		    }
 		    else
 		    {
 			Info << "    jbar = " << jbar.value()
 			     << "    V = " << V.value() << endl;
 		    }
-
-
-
 		}
-		stackVoltage += V.value();
 	}
-		Info << nl << "stack Voltage =" << stackVoltage << endl;
 }
 
 

@@ -1,13 +1,11 @@
 //  Activation term prescribed by Butler-Volmer Equation:
     if(fluidRegionName == "fuel")
     {
-        const scalarField& pPatch = p.boundaryFieldRef()[anodePatchId];
-        
 		tmp<scalarField> etaAnode(
 		activationOverpotential->overPotential
 			(
-				anodeT,
-				pPatch,
+				*anodeT,
+				*anodeP,
 				xSpecie,
 				jDensity
 			)
@@ -26,13 +24,12 @@
 // SBB: Also Cathode overpotential computed with anode temperature
     else
     {
-        scalarField pPatch = cathodeToAnode.faceInterpolate(p.boundaryFieldRef()[cathodePatchId]);
         
 		tmp<scalarField> etaCathode(
 		activationOverpotential->overPotential
 			(
-				cathodeT,
-				pPatch,
+				*cathodeT,
+				cathodeToAnode.faceInterpolate(*cathodeP),
 				xSpecie,
 				jDensity
 			)

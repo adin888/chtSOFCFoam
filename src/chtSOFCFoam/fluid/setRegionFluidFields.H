@@ -13,9 +13,10 @@
     - read and store the chtSOFCSpecieProperties  
     */
     word fluidRegionName = fluidRegions[i].name();
-    fileName chtSOFCSpeciePropertiesFile("constant"/fluidRegionName/"thermophysicalProperties");
-    dictionary chtSOFCSpeciePropertiesDict = chtSOFCSpecie::chtSOFCSpecieDict(chtSOFCSpeciePropertiesFile);
+    chtSOFCSpeciePropertiesFile = ("constant"/fluidRegionName/"thermophysicalProperties");
+    chtSOFCSpeciePropertiesDict = chtSOFCSpecie::chtSOFCSpecieDict(chtSOFCSpeciePropertiesFile);
     PtrList<chtSOFCSpecie> chtSOFCSpecies = chtSOFCSpecie::readAndStoreSOFCSpecies(chtSOFCSpeciePropertiesDict);
+
     
     /*
     - get the thermophysical Data to calculate cp etc.

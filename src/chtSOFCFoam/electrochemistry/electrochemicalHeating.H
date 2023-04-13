@@ -22,22 +22,23 @@
 
 
     // air side accumulators
-    scalarField hReactSrc(anodeT.size(),0);
-    scalarField hProdSrc(anodeT.size(),0);
+    scalarField hAbsolute(anodeT->size(),0);
+    scalarField hReactSrc(anodeT->size(),0);
+    scalarField hProdSrc(anodeT->size(),0);
 
     //PtrList<scalarField> hSp(chtSOFCSpecies.size());
     forAll(chtSOFCSpecies, s)
     {
         if(chtSOFCSpecies[s].nE() != 0)
         {
-            forAll(anodeT, celli)
+            forAll(*anodeT, celli)
     	    {
-                const scalar& currentT = anodeT[celli];
-                const scalar& currentP = anodeP[celli];
-                enthalpyInt[celli] = 
+                const scalar& currentT = (*anodeT)[celli];
+                const scalar& currentP = (*anodeP)[celli];
+                hAbsolute[celli] = 
                 (
             	    specieThermoData[s].Ha(currentP, currentT)
-        	        - specieThermoData[s].Ha(currentP, Tr)
+                    * (chtSOFCSpecies[s].W() / 10e3 * 10)
                 ); 
    	        }  
 
@@ -46,12 +47,12 @@
             if(chtSOFCSpecies[s].rSign() > 0)
             {
                 // product
-                hProdSrc += enthalpyInt/chtSOFCSpecies[s].nE();
+                hProdSrc += hAbsolute/chtSOFCSpecies[s].nE();
             }
             else if(chtSOFCSpecies[s].rSign() < 0)
             {
                 // reactant
-                hReactSrc += enthalpyInt/chtSOFCSpecies[s].nE();
+                hReactSrc += hAbsolute/chtSOFCSpecies[s].nE();
             }
             else
             {
@@ -73,7 +74,7 @@
     if(i == (fluidRegions.size() - 1))
     {
         // jEA applied in cell volumes (not patch)
-        const scalarField& jEA = jDensity.primitiveFieldRef();
+        const scalarField& jEA = jDensity.primitiveField();
         scalarField volMolRate = jEA/F/hE.value();    // [mol/(m^3 s)]
 
         //
@@ -89,8 +90,8 @@
         electrochemicalHeating.correctBoundaryConditions();
 
         Info << "min,mean,max(electrochemicalHeating): "
-            << gMin(electrochemicalHeating.primitiveFieldRef()) << "  "
-            << gAverage(electrochemicalHeating.primitiveFieldRef()) << "  "
-            << gMax(electrochemicalHeating.primitiveFieldRef()) << endl;
+            << gMin(electrochemicalHeating.primitiveField()) << "  "
+            << gAverage(electrochemicalHeating.primitiveField()) << "  "
+            << gMax(electrochemicalHeating.primitiveField()) << endl;
     }
 

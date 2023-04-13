@@ -178,6 +178,8 @@ public:
 
         //- Copy assignment, preserve original name
         inline void operator=(const chtSOFCSpecie&);
+        
+        inline chtSOFCSpecie* clone() const;
 
 
     // IOstream Operators
