@@ -41,8 +41,8 @@
                     * (chtSOFCSpecies[s].W() / 10e3 * 10)
                 ); 
    	        }  
-
-            hFormSum += chtSOFCSpecies[s].hForm()/chtSOFCSpecies[s].nE();
+            /* hAbsolute already contains hForm */
+            //hFormSum += chtSOFCSpecies[s].hForm()/chtSOFCSpecies[s].nE();
 
             if(chtSOFCSpecies[s].rSign() > 0)
             {
@@ -85,7 +85,8 @@
         scalarField& electrochemicalHeatingIn = electrochemicalHeating.primitiveFieldRef();
         electrochemicalHeatingIn =
         (
-            -hFormSum*volMolRate - hSource*volMolRate - jEA*voltage/hE.value()
+            //-hFormSum*volMolRate - hSource*volMolRate - jEA*voltage/hE.value()
+            - hSource*volMolRate - jEA*voltage/hE.value()
         );
         electrochemicalHeating.correctBoundaryConditions();
 

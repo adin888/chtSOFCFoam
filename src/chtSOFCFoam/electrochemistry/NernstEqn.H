@@ -55,6 +55,8 @@
     	forAll(*anodeT, celli)
     	{
             const scalar& currentT = Foam::max((*anodeT)[celli], SMALL);
+            const scalar& currentP = (*anodeP)[celli];
+            /* Grxn can be directly calculated , no need to Hrxn and Srxn */
             Grxn[celli] = 
             (
             	specieThermoData[s].Gstd(currentT)  //[J/kg]
@@ -63,9 +65,9 @@
 
         Qrxn *= Foam::pow(Foam::pow(xSpecie[s], stoiCoeffs),chemFlag);
 
-        Grxn *= (chtSOFCSpecies[s].W() / 10e3 * 10);       // [J/kg] to [J/mol]; why *10?
+        Grxn *= (chtSOFCSpecies[s].W() / 10e3 * 10);       // [J/kg] to [J/mol]; why *10?  
 
-        deltaGrxn += (Grxn * chemFlag * stoiCoeffs);  
+        deltaGrxn += (Grxn * chemFlag * stoiCoeffs);   
 
         Info << chtSOFCSpecies[s].name() << "  " << stoiCoeffs << nl;
         Info<< "   mean deltaGrxn = " << gAverage(deltaGrxn) << endl;
