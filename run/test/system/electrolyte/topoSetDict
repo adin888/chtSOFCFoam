@@ -22,7 +22,7 @@ actions
         type    cellSet;
         action  new;
         source  boxToCell;
-        box     (0 0 5.291e-3) (50.0e-3 4.0e-3 5.299e-3);
+        box     (0 0 5.291e-3) (50.0e-3 50.0e-3 5.299e-3);
     }
     {
         name    layer1;

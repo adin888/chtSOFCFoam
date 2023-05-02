@@ -1,8 +1,8 @@
 {
     Info<< "\nSolving for electrochemistry " << endl;
     
-    label patchId = (fluidRegionName == "fuel" ? anodePatchId : cathodePatchId);
-    
+    label& patchId = (fluidRegionName == "fuel" ? anodePatchId : cathodePatchId);
+    int& patchSize = (fluidRegionName == "fuel" ? anodePatchSize : cathodePatchSize);
     /*const dimensionedScalar& R = constant::physicoChemical::R.value();
     const dimensionedScalar& Pstd = constant::standard::Pstd.value();
     const dimensionedScalar& F = eletrochemistryConstant::F.value();
@@ -14,19 +14,17 @@
     const scalar& F = eletrochemistryConstant::F.value();   //[C/mol]
     const scalar& FF = eletrochemistryConstant::FF.value(); //[C/kmol]
       
-    scalarField moleFraction(anodePatchSize, 0);
+    scalarField moleFraction(patchSize, 0);
     scalarField NernstAnode(anodePatchSize, 0);
     
     PtrList<scalarField> xSpecie (chtSOFCSpecies.size());  //mole fractions of species
     
     /* calculate anode mole fractions except for inert specie*/
-    #include "calculatexSpecie.H"
-    
+	#include "calculatexSpecie.H"
+
     /* calculate Nernst potential in Anode*/
     #include "NernstEqn.H"
-        
-    // Activation overpotential - added SBB 04-09-2013
-    // scalarField etaAnode is computed from an inverse Butler-Volmer eqn. 	
+
     if (runTime.value() > PreIterAct)
     {
     	#include "activationOverpotential.H"
@@ -64,8 +62,6 @@
 		<< Foam::gAverage(jDensityOld) <<" , "
 		<< Foam::gMax(jDensityOld) << endl;    
     }
-    
-
 
 	/* Calculate the electrochemistry when the loop reaches the last region */    
 	if(i == (fluidRegions.size() - 1))
@@ -147,5 +143,4 @@
 
     // Calculate electrochemical heating
     #include "electrochemicalHeating.H" 
-    
 }

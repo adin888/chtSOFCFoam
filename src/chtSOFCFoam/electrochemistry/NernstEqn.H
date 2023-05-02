@@ -45,7 +45,7 @@
     // update with fuel reactants and products
     forAll(chtSOFCSpecies, s)
     {
-    	const label& chemFlag = chtSOFCSpecies[s].rSign(); // product(1) or reactant(-1)
+    	const label& chemFlag = chtSOFCSpecies[s].rSign();          // product(1) or reactant(-1)
     	const scalar& stoiCoeffs = chtSOFCSpecies[s].stoiCoeff();
     	if(chemFlag == 0)
     	{
@@ -70,7 +70,7 @@
         deltaGrxn += (Grxn * chemFlag * stoiCoeffs);   
 
         Info << chtSOFCSpecies[s].name() << "  " << stoiCoeffs << nl;
-        Info<< "   mean deltaGrxn = " << gAverage(deltaGrxn) << endl;
+        Info << "   mean deltaGrxn = " << gAverage(deltaGrxn) << endl;
     }
 
 
