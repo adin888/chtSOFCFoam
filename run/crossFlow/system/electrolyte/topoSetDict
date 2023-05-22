@@ -1,0 +1,38 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2212                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // Electrolyte
+    {
+        name    layer1CellSet;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0 0 5.2849e-3) (100.0e-3 100.0e-3 5.2931e-3);
+    }
+    {
+        name    layer1;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     layer1CellSet;
+    }
+    
+);
+
+
+// ************************************************************************* //
